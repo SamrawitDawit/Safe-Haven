@@ -47,14 +47,14 @@ func (ctrl *AuthContoller) Login(c *gin.Context) {
 }
 
 func (ctrl *AuthContoller) AnonymousRegister(c *gin.Context) {
-	var anonUserDTO dto.AnonymousUser
+	var anonUserDTO dto.RegisterDTO
 	if err := c.BindJSON(&anonUserDTO); err != nil {
 		res := utils.ErrorResponse("Invalid request", err.Error())
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
 
-	err := ctrl.userUsecase.AnonymousRegister(anonUserDTO)
+	err := ctrl.userUsecase.Register(anonUserDTO)
 	if err != nil {
 		res := utils.ErrorResponse("Registration failed", err.Error())
 		c.JSON(http.StatusInternalServerError, res)
@@ -64,7 +64,7 @@ func (ctrl *AuthContoller) AnonymousRegister(c *gin.Context) {
 }
 
 func (ctrl *AuthContoller) AnonymousLogin(c *gin.Context) {
-	var anonUserDTO dto.AnonymousUser
+	var anonUserDTO dto.LoginDTO
 	if err := c.BindJSON(&anonUserDTO); err != nil {
 		res := utils.ErrorResponse("Invalid request", err.Error())
 		c.JSON(http.StatusBadRequest, res)
@@ -88,11 +88,11 @@ func (ctrl *AuthContoller) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	TokenResponseDto, err := ctrl.userUsecase.RefreshToken(refreshToken)
+	newAccessToken, newRefreshToken, err := ctrl.userUsecase.RefreshToken(refreshToken)
 	if err != nil {
 		res := utils.ErrorResponse("Token refresh failed", err.Error())
 		c.JSON(http.StatusUnauthorized, res)
 		return
 	}
-	c.JSON(http.StatusOK, utils.SuccessResponse("Token refreshed successfully", TokenResponseDto))
+	c.JSON(http.StatusOK, utils.SuccessResponse("Token refreshed successfully", map[string]string{"accessToken": newAccessToken, "refreshToken": newRefreshToken}))
 }
