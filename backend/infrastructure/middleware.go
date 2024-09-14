@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"backend/usecases/interfaces"
+	"backend/utils"
 	"net/http"
 	"strings"
 
@@ -15,7 +16,8 @@ func AuthMiddleware(JwtService interfaces.JwtServiceInterface) gin.HandlerFunc {
 		authHeader := context.GetHeader("Authorization")
 
 		if authHeader == "" {
-			context.JSON(http.StatusUnauthorized, gin.H{"Error": "Authorization header is required"})
+			res := utils.ErrorResponse(http.StatusUnauthorized, "No token provided", "No token provided")
+			context.JSON(http.StatusUnauthorized, res)
 			context.Abort()
 			return
 		}
@@ -23,37 +25,33 @@ func AuthMiddleware(JwtService interfaces.JwtServiceInterface) gin.HandlerFunc {
 		authPart := strings.Split(authHeader, " ")
 
 		if len(authPart) != 2 || strings.ToLower(authPart[0]) != "bearer" {
-			context.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid Authorization header"})
+			res := utils.ErrorResponse(http.StatusUnauthorized, "Invalid token", "Invalid token")
+			context.JSON(http.StatusUnauthorized, res)
 			context.Abort()
 			return
 		}
 
-		token, err := JwtService.CheckToken(authPart[1])
+		token, err := JwtService.ValidateToken(authPart[1])
 
 		if token == nil || !token.Valid {
-			errMsg := "Invalid or expired token"
-
-			if err != nil {
-				errMsg = err.Error()
-			}
-			context.JSON(http.StatusUnauthorized, gin.H{"error": errMsg})
+			res := utils.ErrorResponse(http.StatusUnauthorized, "Invalid token", "Invalid token")
+			context.JSON(http.StatusUnauthorized, res)
 			context.Abort()
-			return
 		}
 
-		claims, ok := JwtService.FindClaim(token)
-		if !ok {
-			context.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
+		claims, err := JwtService.ExtractTokenClaims(token)
+		if err != nil {
+			res := utils.ErrorResponse(http.StatusUnauthorized, "Invalid token", "Invalid token")
+			context.JSON(http.StatusUnauthorized, res)
 			context.Abort()
-			return
 		}
 		role := claims["role"]
 		id := claims["id"]
 
 		if role == nil || id == nil {
-			context.JSON(401, gin.H{"error": "Invalid token claims"})
+			res := utils.ErrorResponse(http.StatusUnauthorized, "Invalid token", "Invalid token")
+			context.JSON(http.StatusUnauthorized, res)
 			context.Abort()
-			return
 		}
 		context.Set("role", role)
 		context.Set("id", id)
@@ -66,9 +64,9 @@ func AdminMiddleWare() gin.HandlerFunc {
 		defer context.Next()
 		role, exists := context.Get("role")
 		if !exists || role != "admin" {
-			context.JSON(http.StatusForbidden, gin.H{"message": "Sorry, you must be an admin"})
+			res := utils.ErrorResponse(http.StatusForbidden, "Sorry, you must be an admin", "Sorry, you must be an admin")
+			context.JSON(http.StatusForbidden, res)
 			context.Abort()
-			return
 		}
 	}
 }
@@ -77,9 +75,9 @@ func CounselorMiddleware() gin.HandlerFunc {
 		defer context.Next()
 		role, exists := context.Get("role")
 		if !exists || role != "counselor" {
-			context.JSON(http.StatusForbidden, gin.H{"message": "Sorry, you must be a counselor"})
+			res := utils.ErrorResponse(http.StatusForbidden, "Sorry, you must be a counselor", "Sorry, you must be a counselor")
+			context.JSON(http.StatusForbidden, res)
 			context.Abort()
-			return
 		}
 	}
 }

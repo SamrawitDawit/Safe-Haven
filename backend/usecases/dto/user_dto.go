@@ -4,16 +4,16 @@ import "errors"
 
 type RegisterDTO struct {
 	FullName                string `json:"fullName"`
-	AnonymousDifferenitator string `json:"anonymousDifferenitator" binding:"required"`
-	Email                   string `json:"email omitempty"`
+	AnonymousDifferentiator string `json:"anonymousDifferentiator"`
+	Email                   string `json:"email"`
 	UserType                string `json:"userType" binding:"required"`
 	Password                string `json:"password" binding:"required"`
 	PhoneNumber             string `json:"phoneNumber"`
 }
 type LoginDTO struct {
 	UserType                string `json:"userType" binding:"required"`
-	Email                   string `json:"email" binding:"required"`
-	AnonymousDifferenitator string `json:"anonymousDifferenitator" binding:"required"`
+	Email                   string `json:"email"`
+	AnonymousDifferentiator string `json:"anonymousDifferentiator"`
 	PhoneNumber             string `json:"phoneNumber"`
 	Password                string `json:"password" binding:"required"`
 }
@@ -27,7 +27,7 @@ func ValidateRegisterDTO(registerDTO RegisterDTO) error {
 			return errors.New("email or phoneNumber is required")
 		}
 	} else if registerDTO.UserType == "anonymous" {
-		if registerDTO.AnonymousDifferenitator == "" || registerDTO.Password == "" {
+		if registerDTO.AnonymousDifferentiator == "" || registerDTO.Password == "" {
 			return errors.New("differentiator and password is required")
 		}
 	}
@@ -43,7 +43,7 @@ func ValidateLoginDTO(loginDTO LoginDTO) error {
 			return errors.New("password is required")
 		}
 	} else if loginDTO.UserType == "anonymous" {
-		if loginDTO.AnonymousDifferenitator == "" || loginDTO.Password == "" {
+		if loginDTO.AnonymousDifferentiator == "" || loginDTO.Password == "" {
 			return errors.New("differentiator and password is required")
 		}
 	}

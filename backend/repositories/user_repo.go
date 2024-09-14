@@ -4,8 +4,10 @@ import (
 	"backend/domain"
 	"backend/usecases/interfaces"
 	"context"
+	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -27,8 +29,17 @@ func (u *UserRepository) CreateUser(user *domain.User) error {
 
 func (u *UserRepository) UpdateUser(user *domain.User) error {
 	user.UpdatedAt = time.Now()
-	filter := bson.M{"id": user.ID}
-	_, err := u.collection.UpdateOne(context.TODO(), filter, bson.M{"$set": user})
+	fmt.Println(user.ID)
+	filter := bson.M{"_id": user.ID}
+	update := bson.M{
+		"$set": bson.M{
+			"accessToken":  user.AccessToken,
+			"refreshToken": user.RefreshToken,
+			"updatedAt":    user.UpdatedAt,
+		},
+	}
+	updatedCount, err := u.collection.UpdateOne(context.TODO(), filter, update)
+	fmt.Println(updatedCount)
 	return err
 }
 
@@ -36,26 +47,45 @@ func (u *UserRepository) GetUserByEmail(email string) (*domain.User, error) {
 	var user domain.User
 	filter := bson.M{"email": email}
 	err := u.collection.FindOne(context.TODO(), filter).Decode(&user)
+	if err != nil {
+		return nil, err
+	}
 	return &user, err
 }
 
 func (u *UserRepository) GetUserByPhoneNumber(phoneNumber string) (*domain.User, error) {
 	var user domain.User
-	filter := bson.M{"phone_number": phoneNumber}
+	filter := bson.M{"phoneNumber": phoneNumber}
 	err := u.collection.FindOne(context.TODO(), filter).Decode(&user)
+	if err != nil {
+		return nil, err
+	}
+
 	return &user, err
 }
 
 func (u *UserRepository) GetUserByAnonymousDifferentiator(differentiator string) (*domain.User, error) {
 	var anonUser domain.User
-	filter := bson.M{"differentiator": differentiator}
+	filter := bson.M{"anonymousDifferentiator": differentiator}
 	err := u.collection.FindOne(context.TODO(), filter).Decode(&anonUser)
-	return &anonUser, err
+	if err != nil {
+		return nil, err
+	}
+	return &anonUser, nil
 }
 
-func (u *UserRepository) GetUserByID(id string) (*domain.User, error) {
+func (u *UserRepository) GetUserByID(id uuid.UUID) (*domain.User, error) {
 	var user domain.User
-	filter := bson.M{"id": id}
+	filter := bson.M{"_id": id}
 	err := u.collection.FindOne(context.TODO(), filter).Decode(&user)
+	if err != nil {
+		return nil, err
+	}
+	user.ID = id
 	return &user, err
+}
+
+func (u *UserRepository) GetUsersCount() (int, error) {
+	count, err := u.collection.CountDocuments(context.TODO(), bson.M{})
+	return int(count), err
 }

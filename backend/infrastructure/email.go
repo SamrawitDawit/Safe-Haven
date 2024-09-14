@@ -7,6 +7,7 @@ type EmailService struct {
 	UserName string
 	Password string
 	Host     string
+	Port     string
 }
 
 func (s *EmailService) SendResetPasswordEmail(email string, resetToken string) error {
@@ -45,9 +46,8 @@ func (s *EmailService) SendResetPasswordEmail(email string, resetToken string) e
 	message += "Subject: " + subject + "\r\n\r\n"
 	message += body
 
-	//Example using Gmail's SMTP server
 	auth := smtp.PlainAuth("", s.UserName, s.Password, s.Host)
-	err := smtp.SendMail(s.Host+":587", auth, from, []string{to}, []byte(message))
+	err := smtp.SendMail(s.Host+":"+s.Port, auth, from, []string{to}, []byte(message))
 	if err != nil {
 		return err
 	}

@@ -7,15 +7,17 @@ type Response struct {
 	Error   string      `json:"error,omitempty"`
 }
 
-func SuccessResponse(message string, data interface{}) Response {
+func SuccessResponse(status int, message string, data interface{}) Response {
 	return Response{
+		Status:  status,
 		Message: message,
 		Data:    data,
 	}
 }
 
-func ErrorResponse(message string, err string) Response {
+func ErrorResponse(status int, message string, err string) Response {
 	return Response{
+		Status:  status,
 		Message: message,
 		Error:   err,
 	}

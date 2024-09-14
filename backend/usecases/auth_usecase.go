@@ -2,24 +2,27 @@ package usecases
 
 import (
 	"backend/domain"
-	"backend/infrastructure"
-	"backend/repositories"
 	"backend/usecases/dto"
+	"backend/usecases/interfaces"
 	"errors"
+	"fmt"
 	"math/rand"
 	"time"
 
 	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type AuthUseCaseInterface interface {
 	Register(registerDTO dto.RegisterDTO) error
-	Login(loginDTO dto.LoginDTO) (*domain.User, error)
-	AnonymousLogin(anonUserDTO dto.LoginDTO) (*domain.User, error)
+	Login(loginDTO dto.LoginDTO) (string, string, error)
 	RefreshToken(refreshToken string) (string, string, error)
+	ForgotPassword(email string) error
+	ResetPassword(token string, newPassword string) error
+	HandleGoogleCallback(user *domain.User) (string, string, error)
 }
 
-func NewAuthUseCase(userRepo repositories.UserRepository, anonUserRepo repositories.UserRepository, jwtservice infrastructure.JWTService, emailService infrastructure.EmailService, pwdService infrastructure.HashingService) AuthUseCaseInterface {
+func NewAuthUseCase(userRepo interfaces.UserRepositoryInterface, jwtservice interfaces.JwtServiceInterface, emailService interfaces.EmailServiceInterface, pwdService interfaces.HashingServiceInterface) AuthUseCaseInterface {
 	return &AuthUseCase{
 		userRepo:     userRepo,
 		jwtService:   jwtservice,
@@ -29,41 +32,127 @@ func NewAuthUseCase(userRepo repositories.UserRepository, anonUserRepo repositor
 }
 
 type AuthUseCase struct {
-	userRepo     repositories.UserRepository
-	jwtService   infrastructure.JWTService
-	emailService infrastructure.EmailService
-	pwdService   infrastructure.HashingService
+	userRepo     interfaces.UserRepositoryInterface
+	jwtService   interfaces.JwtServiceInterface
+	emailService interfaces.EmailServiceInterface
+	pwdService   interfaces.HashingServiceInterface
 }
 
-func (a *AuthUseCase) AnonymousLogin(anonUserDTO dto.LoginDTO) (*domain.User, error) {
-	return a.userRepo.GetUserByAnonymousDifferentiator(anonUserDTO.AnonymousDifferenitator)
-}
-func (a *AuthUseCase) Login(loginDTO dto.LoginDTO) (*domain.User, error) {
+func (a *AuthUseCase) Login(loginDTO dto.LoginDTO) (string, string, error) {
+	var user *domain.User
 	if loginDTO.Email != "" {
-		user, err := a.userRepo.GetUserByEmail(loginDTO.Email)
-		return user, err
+		user, _ = a.userRepo.GetUserByEmail(loginDTO.Email)
+		if user != nil && user.GoogleSignin {
+			return "", "", errors.New("invalid login credentials")
+		}
 	} else if loginDTO.PhoneNumber != "" {
-		user, err := a.userRepo.GetUserByPhoneNumber(loginDTO.PhoneNumber)
-		return user, err
+		user, _ = a.userRepo.GetUserByPhoneNumber(loginDTO.PhoneNumber)
+		if user == nil {
+			return "", "", errors.New("invalid login credentials")
+		}
+	} else if loginDTO.AnonymousDifferentiator != "" {
+		user, _ = a.userRepo.GetUserByAnonymousDifferentiator(loginDTO.AnonymousDifferentiator)
+		if user == nil {
+			return "", "", errors.New("invalid login credentials")
+		}
 	}
-	return nil, errors.New("invalid login credentials")
+	err := a.pwdService.CheckPasswordHash(loginDTO.Password, user.Password)
+	if err != nil {
+		return "", "", errors.New("invalid login credentials")
+	}
+	accessToken, refreshToken, err := a.jwtService.GenerateToken(user)
+	if err != nil {
+		return "", "", err
+	}
+	user.AccessToken = accessToken
+	user.RefreshToken = refreshToken
+	err = a.userRepo.UpdateUser(user)
+	if err != nil {
+		return "", "", err
+	}
+	return accessToken, refreshToken, nil
 }
 
 func (a *AuthUseCase) Register(registerDTO dto.RegisterDTO) error {
-	user := &domain.User{
-		ID:                uuid.New(),
-		FullName:          registerDTO.FullName,
-		Email:             registerDTO.Email,
-		Password:          registerDTO.Password,
-		PhoneNumber:       registerDTO.PhoneNumber,
-		UserType:          registerDTO.UserType,
-		Role:              "regular",
-		Active:            true,
-		Verified:          false,
-		CounselorAssigned: false,
+	var existingUser *domain.User
+	var err error
+	//checking if user already exists
+	if registerDTO.Email != "" {
+		existingUser, err = a.userRepo.GetUserByEmail(registerDTO.Email)
+		if err != nil && err != mongo.ErrNoDocuments {
+			return err
+		}
+		if existingUser != nil && !existingUser.GoogleSignin {
+			return errors.New("user already exists")
+		}
+
+	} else if registerDTO.PhoneNumber != "" {
+		existingUser, err = a.userRepo.GetUserByPhoneNumber(registerDTO.PhoneNumber)
+		if err != nil && err != mongo.ErrNoDocuments {
+			return err
+		}
+		if existingUser != nil {
+			return errors.New("user already exists")
+		}
+	} else if registerDTO.AnonymousDifferentiator != "" {
+		existingUser, err = a.userRepo.GetUserByAnonymousDifferentiator(registerDTO.AnonymousDifferentiator)
+		if err != nil && err != mongo.ErrNoDocuments {
+			return err
+		}
+		if existingUser != nil {
+			return errors.New("user already exists")
+		}
 	}
-	return a.userRepo.CreateUser(user)
+
+	hashedPassword, err := a.pwdService.HashPassword(registerDTO.Password)
+	if err != nil {
+		return err
+	}
+	new_user := &domain.User{
+		ID:                      uuid.New(),
+		FullName:                registerDTO.FullName,
+		Email:                   registerDTO.Email,
+		AnonymousDifferentiator: registerDTO.AnonymousDifferentiator,
+		Password:                hashedPassword,
+		PhoneNumber:             registerDTO.PhoneNumber,
+		UserType:                registerDTO.UserType,
+		Role:                    "regular",
+		Active:                  true,
+		Verified:                false,
+		CounselorAssigned:       false,
+		CreatedAt:               time.Now(),
+		UpdatedAt:               time.Now(),
+	}
+
+	count, err := a.userRepo.GetUsersCount()
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		new_user.Role = "admin"
+		new_user.Verified = true
+	}
+	if existingUser != nil && existingUser.GoogleSignin {
+		existingUser.FullName = new_user.FullName
+		existingUser.Email = new_user.Email
+		existingUser.Password = new_user.Password
+		existingUser.PhoneNumber = new_user.PhoneNumber
+		existingUser.UserType = new_user.UserType
+		existingUser.Role = new_user.Role
+		existingUser.Active = new_user.Active
+		existingUser.Verified = new_user.Verified
+		existingUser.CounselorAssigned = new_user.CounselorAssigned
+		existingUser.UpdatedAt = time.Now()
+		existingUser.GoogleSignin = false
+		err = a.userRepo.UpdateUser(existingUser)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	return a.userRepo.CreateUser(new_user)
 }
+
 func (a *AuthUseCase) RefreshToken(refreshToken string) (string, string, error) {
 	token, err := a.jwtService.ValidateToken(refreshToken)
 	if err != nil || !token.Valid {
@@ -74,12 +163,13 @@ func (a *AuthUseCase) RefreshToken(refreshToken string) (string, string, error) 
 		return "", "", errors.New("invalid token claims")
 	}
 
-	id := claims["id"].(string)
+	id := uuid.MustParse(claims["id"].(string))
+	fmt.Println(id)
 	user, err := a.userRepo.GetUserByID(id)
 	if err != nil || user == nil {
 		return "", "", err
 	}
-
+	fmt.Println(user)
 	token, err = a.jwtService.ValidateToken(user.RefreshToken)
 	if err != nil || !token.Valid {
 		return "", "", errors.New("invalid token")
@@ -88,19 +178,19 @@ func (a *AuthUseCase) RefreshToken(refreshToken string) (string, string, error) 
 		return "", "", errors.New("invalid token")
 	}
 
-	accessToken, refreshToken, err := a.jwtService.GenerateToken(user)
+	new_accessToken, new_refreshToken, err := a.jwtService.GenerateToken(user)
 	if err != nil {
 		return "", "", err
 	}
 
-	user.AccessToken = accessToken
-	user.RefreshToken = refreshToken
+	user.AccessToken = new_accessToken
+	user.RefreshToken = new_refreshToken
 	err = a.userRepo.UpdateUser(user)
 	if err != nil {
 		return "", "", err
 	}
 
-	return accessToken, refreshToken, nil
+	return new_accessToken, new_refreshToken, nil
 }
 
 func (a *AuthUseCase) ForgotPassword(email string) error {

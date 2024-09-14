@@ -10,6 +10,5 @@ type JwtServiceInterface interface {
 	GenerateToken(user *domain.User) (string, string, error)
 	ValidateToken(token string) (*jwt.Token, error)
 	GenerateResetToken(email string, code int64) (string, error)
-	CheckToken(authPart string) (*jwt.Token, error)
-	FindClaim(token *jwt.Token) (jwt.MapClaims, bool)
+	ExtractTokenClaims(token *jwt.Token) (jwt.MapClaims, error)
 }
