@@ -1,4 +1,5 @@
 name: Go CI
+
 on:
   push:
     branches:
@@ -12,13 +13,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    # Step 1: Check out the repository
+    - name: Check out code
+      uses: actions/checkout@v3
+
+    # Step 2: Set up Go environment
     - name: Set up Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v4
       with:
-        go-version: 1.22.5
+        go-version: 1.22.5  
+
+    # Step 3: Go module caching (optional)
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+    # Step 4: Install dependencies
     - name: Install dependencies
       run: go mod tidy
       working-directory: ./backend  
-    - name: Run Tests
-      run: go test ./backend/tests/...
+
+    # Step 5: Run tests
+    - name: Run tests
+      run: go test ./...
+      working-directory: ./backend/tests
