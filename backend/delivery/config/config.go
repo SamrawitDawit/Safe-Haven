@@ -16,6 +16,7 @@ type EnvironmentVariables struct {
 	DB_NAME              string
 	JWT_SECRET           string
 	EMAIL_HOST           string
+	EMAIL_PORT           string
 	EMAIL_USERNAME       string
 	EMAIL_PASSWORD       string
 	EMAIL                string
@@ -36,6 +37,7 @@ func LoadEnv() error {
 	ENV.DB_NAME = os.Getenv("DB_NAME")
 	ENV.JWT_SECRET = os.Getenv("JWT_SECRET")
 	ENV.EMAIL_HOST = os.Getenv("EMAIL_HOST")
+	ENV.EMAIL_PORT = os.Getenv("EMAIL_PORT")
 	ENV.EMAIL_USERNAME = os.Getenv("EMAIL_USERNAME")
 	ENV.EMAIL_PASSWORD = os.Getenv("EMAIL_PASSWORD")
 	ENV.EMAIL = os.Getenv("EMAIL")

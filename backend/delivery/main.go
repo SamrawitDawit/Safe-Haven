@@ -30,6 +30,7 @@ func main() {
 	pwdService := infrastructure.HashingService{}
 	emailService := infrastructure.EmailService{
 		Host:     config.ENV.EMAIL_HOST,
+		Port:     config.ENV.EMAIL_PORT,
 		UserName: config.ENV.EMAIL_USERNAME,
 		Password: config.ENV.EMAIL_PASSWORD,
 		Email:    config.ENV.EMAIL,

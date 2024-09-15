@@ -93,27 +93,22 @@ func (ctrl *AuthContoller) ForgotPassword(c *gin.Context) {
 
 	err := ctrl.userUsecase.ForgotPassword(email)
 	if err != nil {
-		res := utils.ErrorResponse(http.StatusInternalServerError, "Password reset failed", err.Error())
+		res := utils.ErrorResponse(http.StatusInternalServerError, "Password reset email sending failed", err.Error())
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
-	c.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Password reset successful", nil))
+	c.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Password reset email sending successful", nil))
 }
 
 func (ctrl *AuthContoller) ResetPassword(c *gin.Context) {
-	var token, newPassword string
-	if err := c.BindJSON(&token); err != nil {
-		res := utils.ErrorResponse(http.StatusBadRequest, "Invalid request", err.Error())
-		c.JSON(http.StatusBadRequest, res)
-		return
-	}
-	if err := c.BindJSON(&newPassword); err != nil {
+	var ResetPassworddto dto.ResetPasswordRequestDTO
+	if err := c.BindJSON(&ResetPassworddto); err != nil {
 		res := utils.ErrorResponse(http.StatusBadRequest, "Invalid request", err.Error())
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
 
-	err := ctrl.userUsecase.ResetPassword(token, newPassword)
+	err := ctrl.userUsecase.ResetPassword(ResetPassworddto.Token, ResetPassworddto.NewPassword)
 	if err != nil {
 		res := utils.ErrorResponse(http.StatusInternalServerError, "Password reset failed", err.Error())
 		c.JSON(http.StatusInternalServerError, res)

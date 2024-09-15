@@ -5,7 +5,6 @@ import (
 	"backend/usecases/dto"
 	"backend/usecases/interfaces"
 	"errors"
-	"fmt"
 	"math/rand"
 	"time"
 
@@ -43,6 +42,9 @@ func (a *AuthUseCase) Login(loginDTO dto.LoginDTO) (string, string, error) {
 	if loginDTO.Email != "" {
 		user, _ = a.userRepo.GetUserByEmail(loginDTO.Email)
 		if user != nil && user.GoogleSignin {
+			return "", "", errors.New("invalid login credentials")
+		}
+		if user == nil {
 			return "", "", errors.New("invalid login credentials")
 		}
 	} else if loginDTO.PhoneNumber != "" {
@@ -164,12 +166,10 @@ func (a *AuthUseCase) RefreshToken(refreshToken string) (string, string, error) 
 	}
 
 	id := uuid.MustParse(claims["id"].(string))
-	fmt.Println(id)
 	user, err := a.userRepo.GetUserByID(id)
 	if err != nil || user == nil {
 		return "", "", err
 	}
-	fmt.Println(user)
 	token, err = a.jwtService.ValidateToken(user.RefreshToken)
 	if err != nil || !token.Valid {
 		return "", "", errors.New("invalid token")
@@ -229,11 +229,11 @@ func (a *AuthUseCase) ResetPassword(token string, newPassword string) error {
 	}
 	code, ok := claims["code"].(float64)
 	if !ok {
-		return errors.New("invalid token claims")
+		return errors.New("invalid token claims:code")
 	}
 	email, ok := claims["email"].(string)
 	if !ok {
-		return errors.New("invalid token claims")
+		return errors.New("invalid token claims:email")
 	}
 	user, err := a.userRepo.GetUserByEmail(email)
 	if err != nil || user == nil {

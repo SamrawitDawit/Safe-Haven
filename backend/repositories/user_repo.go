@@ -31,13 +31,7 @@ func (u *UserRepository) UpdateUser(user *domain.User) error {
 	user.UpdatedAt = time.Now()
 	fmt.Println(user.ID)
 	filter := bson.M{"_id": user.ID}
-	update := bson.M{
-		"$set": bson.M{
-			"accessToken":  user.AccessToken,
-			"refreshToken": user.RefreshToken,
-			"updatedAt":    user.UpdatedAt,
-		},
-	}
+	update := bson.M{"$set": user}
 	updatedCount, err := u.collection.UpdateOne(context.TODO(), filter, update)
 	fmt.Println(updatedCount)
 	return err
