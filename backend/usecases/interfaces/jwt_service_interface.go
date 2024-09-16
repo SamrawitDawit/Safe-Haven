@@ -7,8 +7,8 @@ import (
 )
 
 type JwtServiceInterface interface {
-	GenerateToken(user *domain.User) (string, string, error)
-	ValidateToken(token string) (*jwt.Token, error)
-	GenerateResetToken(email string, code int64) (string, error)
-	ExtractTokenClaims(token *jwt.Token) (jwt.MapClaims, error)
+	GenerateToken(user *domain.User) (string, string, *domain.CustomError)
+	ValidateToken(token string) (*jwt.Token, *domain.CustomError)
+	GenerateResetToken(email string, code int64) (string, *domain.CustomError)
+	ExtractTokenClaims(token *jwt.Token) (jwt.MapClaims, *domain.CustomError)
 }

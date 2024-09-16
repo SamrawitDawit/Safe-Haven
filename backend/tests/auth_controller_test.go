@@ -2,11 +2,11 @@ package tests
 
 import (
 	"backend/delivery/controllers"
+	"backend/domain"
 	"backend/tests/mocks"
 	"backend/usecases/dto"
 	"bytes"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,6 +14,7 @@ import (
 	// "cloud.google.com/go/auth/credentials/idtoken"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+
 	// "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/oauth2"
@@ -21,9 +22,9 @@ import (
 
 type AuthControllerTestSuite struct {
 	suite.Suite
-	mockUsecase *mocks.AuthUseCaseInterface
-	controller  *controllers.AuthContoller
-	recorder    *httptest.ResponseRecorder
+	mockUsecase  *mocks.AuthUseCaseInterface
+	controller   *controllers.AuthContoller
+	recorder     *httptest.ResponseRecorder
 	googleConfig *oauth2.Config
 }
 
@@ -43,6 +44,8 @@ func (suite *AuthControllerTestSuite) TestRegister_Success() {
 		Password: "password123",
 		FullName: "John Doe",
 		UserType: "normal",
+		Category: "general",
+		Language: "Amharic",
 	}
 	suite.mockUsecase.On("Register", registerDTO).Return(nil)
 	body, _ := json.Marshal(registerDTO)
@@ -84,8 +87,10 @@ func (suite *AuthControllerTestSuite) TestRegister_Failure() {
 		Password: "password123",
 		FullName: "John Doe",
 		UserType: "normal",
+		Category: "general",
+		Language: "Amharic",
 	}
-	suite.mockUsecase.On("Register", registerDTO).Return(errors.New("registration error"))
+	suite.mockUsecase.On("Register", registerDTO).Return(domain.ErrUserCreationFailed)
 	body, _ := json.Marshal(registerDTO)
 	req, _ := http.NewRequest(http.MethodPost, "/register", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -148,7 +153,7 @@ func (suite *AuthControllerTestSuite) TestLogin_Failure() {
 		Password: "password123",
 		UserType: "normal",
 	}
-	suite.mockUsecase.On("Login", loginDTO).Return("", "", errors.New("login failed"))
+	suite.mockUsecase.On("Login", loginDTO).Return("", "", domain.ErrInvalidCredentials)
 	body, _ := json.Marshal(loginDTO)
 	req, _ := http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -199,7 +204,7 @@ func (suite *AuthControllerTestSuite) TestRefreshToken_InvalidRequest() {
 
 func (suite *AuthControllerTestSuite) TestRefreshToken_Failure() {
 	refreshToken := "old-refresh-token"
-	suite.mockUsecase.On("RefreshToken", refreshToken).Return("", "", errors.New("token refresh failed"))
+	suite.mockUsecase.On("RefreshToken", refreshToken).Return("", "", domain.ErrRefreshTokenGenerationFailed)
 	body, _ := json.Marshal(refreshToken)
 	req, _ := http.NewRequest(http.MethodPost, "/refresh-token", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -233,7 +238,7 @@ func (suite *AuthControllerTestSuite) TestForgotPassword_Success() {
 
 func (suite *AuthControllerTestSuite) TestForgotPassword_Failure() {
 	email := "test@example.com"
-	suite.mockUsecase.On("ForgotPassword", email).Return(errors.New("failed to send email"))
+	suite.mockUsecase.On("ForgotPassword", email).Return(domain.ErrEmailSendingFailed)
 	body, _ := json.Marshal(email)
 	req, _ := http.NewRequest(http.MethodPost, "/forgot-password", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -249,7 +254,7 @@ func (suite *AuthControllerTestSuite) TestForgotPassword_Failure() {
 }
 func (suite *AuthControllerTestSuite) TestResetPassword_Success() {
 	resetDTO := dto.ResetPasswordRequestDTO{
-		Token:      "valid-token",
+		Token:       "valid-token",
 		NewPassword: "newPassword123",
 	}
 
@@ -287,11 +292,11 @@ func (suite *AuthControllerTestSuite) TestResetPassword_InvalidRequest() {
 
 func (suite *AuthControllerTestSuite) TestResetPassword_Failure() {
 	resetDTO := dto.ResetPasswordRequestDTO{
-		Token:      "invalid-token",
+		Token:       "invalid-token",
 		NewPassword: "newPassword123",
 	}
 
-	suite.mockUsecase.On("ResetPassword", resetDTO.Token, resetDTO.NewPassword).Return(errors.New("reset failed"))
+	suite.mockUsecase.On("ResetPassword", resetDTO.Token, resetDTO.NewPassword).Return(domain.ErrResetTokenGenerationFailed)
 	body, _ := json.Marshal(resetDTO)
 	req, _ := http.NewRequest(http.MethodPost, "/reset-password", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")

@@ -5,14 +5,12 @@ import (
 	"backend/tests/mocks"
 	"backend/usecases"
 	"backend/usecases/dto"
-	"errors"
 	"testing"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type AuthUseCaseTestSuite struct {
@@ -44,10 +42,12 @@ func (suite *AuthUseCaseTestSuite) TestRegister_Success() {
 		Email:    "test@example.com",
 		Password: "password123",
 		UserType: "normal",
+		Category: "general",
+		Language: "Amharic",
 	}
 
 	// Expect user repo to not find an existing user by email
-	suite.mockUserRepo.On("GetUserByEmail", registerDTO.Email).Return(nil, mongo.ErrNoDocuments)
+	suite.mockUserRepo.On("GetUserByEmail", registerDTO.Email).Return(nil, domain.ErrUserNotFound)
 
 	suite.mockUserRepo.On("GetUsersCount").Return(0, nil)
 
@@ -61,7 +61,7 @@ func (suite *AuthUseCaseTestSuite) TestRegister_Success() {
 	err := suite.authUseCase.Register(registerDTO)
 
 	// Assert
-	suite.NoError(err)
+	suite.Nil(err)
 	suite.mockUserRepo.AssertCalled(suite.T(), "CreateUser", mock.MatchedBy(func(user *domain.User) bool {
 		return user.Role == "admin" && user.Verified == true
 	}))
@@ -74,16 +74,18 @@ func (suite *AuthUseCaseTestSuite) TestRegister_Email_Exists_Failure() {
 		Email:    "test@example.com",
 		Password: "password123",
 		UserType: "normal",
+		Category: "general",
+		Language: "Amharic",
 	}
 
 	// Expect user repo to not find an existing user by email
-	suite.mockUserRepo.On("GetUserByEmail", registerDTO.Email).Return(&domain.User{GoogleSignin: false}, mongo.ErrNoDocuments)
+	suite.mockUserRepo.On("GetUserByEmail", registerDTO.Email).Return(&domain.User{GoogleSignin: false}, domain.ErrUserNotFound)
 
 	// Act
 	err := suite.authUseCase.Register(registerDTO)
 
 	// Assert
-	suite.Equal(err, errors.New("user already exists"))
+	suite.Equal(err, domain.ErrUserEmailExists)
 }
 
 func (suite *AuthUseCaseTestSuite) TestRegister_EmailExists_GoogleSignin_Success() {
@@ -93,6 +95,8 @@ func (suite *AuthUseCaseTestSuite) TestRegister_EmailExists_GoogleSignin_Success
 		Email:    "test@example.com",
 		Password: "password123",
 		UserType: "normal",
+		Category: "general",
+		Language: "Amharic",
 	}
 
 	existingUser := &domain.User{
@@ -110,7 +114,7 @@ func (suite *AuthUseCaseTestSuite) TestRegister_EmailExists_GoogleSignin_Success
 	err := suite.authUseCase.Register(registerDTO)
 
 	// Assert
-	suite.NoError(err)
+	suite.Nil(err)
 	suite.mockUserRepo.AssertCalled(suite.T(), "UpdateUser", mock.Anything)
 }
 
@@ -121,6 +125,8 @@ func (suite *AuthUseCaseTestSuite) TestRegister_PhoneNumberExists_Failure() {
 		PhoneNumber: "1234567890",
 		Password:    "password123",
 		UserType:    "normal",
+		Category:    "general",
+		Language:    "Amharic",
 	}
 
 	existingUser := &domain.User{
@@ -134,9 +140,8 @@ func (suite *AuthUseCaseTestSuite) TestRegister_PhoneNumberExists_Failure() {
 	err := suite.authUseCase.Register(registerDTO)
 
 	// Assert
-	suite.Equal(err, errors.New("user already exists"))
+	suite.Equal(err, domain.ErrUserPhoneNumberExists)
 }
-
 
 func (suite *AuthUseCaseTestSuite) TestLogin_Success() {
 	// Arrange
@@ -160,7 +165,7 @@ func (suite *AuthUseCaseTestSuite) TestLogin_Success() {
 	accessToken, refreshToken, err := suite.authUseCase.Login(loginDTO)
 
 	// Assert
-	suite.NoError(err)
+	suite.Nil(err)
 	suite.Equal("access_token", accessToken)
 	suite.Equal("refresh_token", refreshToken)
 	suite.mockUserRepo.AssertCalled(suite.T(), "UpdateUser", mock.Anything)
@@ -175,13 +180,13 @@ func (suite *AuthUseCaseTestSuite) TestLogin_UserNotFoundByEmail_Failure() {
 	}
 
 	// Mock user not found
-	suite.mockUserRepo.On("GetUserByEmail", loginDTO.Email).Return(nil, mongo.ErrNoDocuments)
+	suite.mockUserRepo.On("GetUserByEmail", loginDTO.Email).Return(nil, domain.ErrUserNotFound)
 
 	// Act
 	_, _, err := suite.authUseCase.Login(loginDTO)
 
 	// Assert
-	suite.Equal(err, errors.New("invalid login credentials"))
+	suite.Equal(err, domain.ErrInvalidCredentials)
 }
 
 func (suite *AuthUseCaseTestSuite) TestLogin_InvalidPassword_Failure() {
@@ -200,13 +205,13 @@ func (suite *AuthUseCaseTestSuite) TestLogin_InvalidPassword_Failure() {
 	// Mock user found by email
 	suite.mockUserRepo.On("GetUserByEmail", loginDTO.Email).Return(user, nil)
 	// Mock password check failure
-	suite.mockHashingService.On("CheckPasswordHash", loginDTO.Password, user.Password).Return(errors.New("password mismatch"))
+	suite.mockHashingService.On("CheckPasswordHash", loginDTO.Password, user.Password).Return(domain.ErrInvalidCredentials)
 
 	// Act
 	_, _, err := suite.authUseCase.Login(loginDTO)
 
 	// Assert
-	suite.Equal(err, errors.New("invalid login credentials"))
+	suite.Equal(err, domain.ErrInvalidCredentials)
 }
 
 func (suite *AuthUseCaseTestSuite) TestLogin_GoogleSigninAttemptedNormalLogin_Failure() {
@@ -228,7 +233,7 @@ func (suite *AuthUseCaseTestSuite) TestLogin_GoogleSigninAttemptedNormalLogin_Fa
 	_, _, err := suite.authUseCase.Login(loginDTO)
 
 	// Assert
-	suite.Equal(err, errors.New("invalid login credentials"))
+	suite.Equal(err, domain.ErrInvalidCredentials)
 }
 
 func (suite *AuthUseCaseTestSuite) TestForgotPassword_Success() {
@@ -247,7 +252,7 @@ func (suite *AuthUseCaseTestSuite) TestForgotPassword_Success() {
 	err := suite.authUseCase.ForgotPassword(email)
 
 	// Assert
-	suite.NoError(err)
+	suite.Nil(err)
 	suite.mockUserRepo.AssertCalled(suite.T(), "UpdateUser", mock.Anything)
 }
 
@@ -256,19 +261,19 @@ func (suite *AuthUseCaseTestSuite) TestForgotPassword_UserNotFound_Failure() {
 	email := "notfound@example.com"
 
 	// Mock user not found
-	suite.mockUserRepo.On("GetUserByEmail", email).Return(nil, mongo.ErrNoDocuments)
+	suite.mockUserRepo.On("GetUserByEmail", email).Return(nil, domain.ErrUserNotFound)
 
 	// Act
 	err := suite.authUseCase.ForgotPassword(email)
 
 	// Assert
-	suite.Equal(err, mongo.ErrNoDocuments)
+	suite.Equal(err, domain.ErrUserNotFound)
 }
 func (suite *AuthUseCaseTestSuite) TestRefreshToken_Success() {
 	// Arrange
 	refreshToken := "valid_refresh_token"
 	user := &domain.User{
-		ID: 		 uuid.New(),
+		ID:           uuid.New(),
 		RefreshToken: "valid_refresh_token",
 	}
 
@@ -281,12 +286,11 @@ func (suite *AuthUseCaseTestSuite) TestRefreshToken_Success() {
 	suite.mockJwtService.On("GenerateToken", user).Return("access_token", "refresh_token", nil)
 	suite.mockUserRepo.On("UpdateUser", user).Return(nil)
 
-
 	// Act
 	accToken, refToken, err := suite.authUseCase.RefreshToken(refreshToken)
 
 	// Assert
-	suite.NoError(err)
+	suite.Nil(err)
 	suite.Equal("access_token", accToken)
 	suite.Equal("refresh_token", refToken)
 	suite.mockUserRepo.AssertCalled(suite.T(), "UpdateUser", mock.Anything)
@@ -296,19 +300,19 @@ func (suite *AuthUseCaseTestSuite) TestRefreshToken_InvalidToken_Failure() {
 	invalidToken := "invalid_refresh_token"
 
 	// Mock invalid token validation
-	suite.mockJwtService.On("ValidateToken", invalidToken).Return(nil, errors.New("invalid token"))
+	suite.mockJwtService.On("ValidateToken", invalidToken).Return(nil, domain.ErrInvalidToken)
 
 	// Act
 	_, _, err := suite.authUseCase.RefreshToken(invalidToken)
 
 	// Assert
-	suite.Equal(err, errors.New("invalid token"))
+	suite.Equal(err, domain.ErrInvalidToken)
 }
 func (suite *AuthUseCaseTestSuite) TestRefreshToken_TokenMismatch_Failure() {
 	// Arrange
 	refreshToken := "valid_refresh_token"
 	user := &domain.User{
-		ID: 		 uuid.New(),
+		ID:           uuid.New(),
 		RefreshToken: "different_token",
 	}
 
@@ -323,21 +327,21 @@ func (suite *AuthUseCaseTestSuite) TestRefreshToken_TokenMismatch_Failure() {
 	_, _, err := suite.authUseCase.RefreshToken(refreshToken)
 
 	// Assert
-	suite.Equal(err, errors.New("invalid token"))
+	suite.Equal(err, domain.ErrInvalidRefreshToken)
 }
 func (suite *AuthUseCaseTestSuite) TestResetPassword_Success() {
 	// Arrange
 	token := "valid_token"
 	newPassword := "new_password"
 	user := &domain.User{
-		Email:     "test@example.com",
-		ResetCode: 12345,
+		Email:      "test@example.com",
+		ResetCode:  12345,
 		ResetToken: token,
-		Password:  "old_password",
+		Password:   "old_password",
 	}
 
 	claims := jwt.MapClaims{
-		"code":  float64(user.ResetCode),  // claims code as float64
+		"code":  float64(user.ResetCode), // claims code as float64
 		"email": user.Email,
 	}
 
@@ -352,7 +356,7 @@ func (suite *AuthUseCaseTestSuite) TestResetPassword_Success() {
 	err := suite.authUseCase.ResetPassword(token, newPassword)
 
 	// Assert
-	suite.NoError(err)
+	suite.Nil(err)
 	suite.mockUserRepo.AssertCalled(suite.T(), "UpdateUser", mock.MatchedBy(func(updatedUser *domain.User) bool {
 		return updatedUser.ResetCode == 0 && updatedUser.ResetToken == "" && updatedUser.Password == "hashed_new_password"
 	}))
@@ -363,13 +367,13 @@ func (suite *AuthUseCaseTestSuite) TestResetPassword_InvalidToken() {
 	token := "invalid_token"
 	newPassword := "new_password"
 
-	suite.mockJwtService.On("ValidateToken", token).Return(nil, errors.New("invalid token"))
+	suite.mockJwtService.On("ValidateToken", token).Return(nil, domain.ErrInvalidToken)
 
 	// Act
 	err := suite.authUseCase.ResetPassword(token, newPassword)
 
 	// Assert
-	suite.EqualError(err, "invalid token")
+	suite.Equal(err, domain.ErrInvalidToken)
 }
 func (suite *AuthUseCaseTestSuite) TestResetPassword_InvalidTokenClaims() {
 	// Arrange
@@ -378,13 +382,13 @@ func (suite *AuthUseCaseTestSuite) TestResetPassword_InvalidTokenClaims() {
 
 	validToken := &jwt.Token{Valid: true}
 	suite.mockJwtService.On("ValidateToken", token).Return(validToken, nil)
-	suite.mockJwtService.On("ExtractTokenClaims", validToken).Return(nil, errors.New("invalid token claims"))
+	suite.mockJwtService.On("ExtractTokenClaims", validToken).Return(nil, domain.ErrInvalidTokenClaims)
 
 	// Act
 	err := suite.authUseCase.ResetPassword(token, newPassword)
 
 	// Assert
-	suite.EqualError(err, "invalid token claims")
+	suite.Equal(err, domain.ErrInvalidTokenClaims)
 }
 func (suite *AuthUseCaseTestSuite) TestResetPassword_UserNotFound() {
 	// Arrange
@@ -392,33 +396,33 @@ func (suite *AuthUseCaseTestSuite) TestResetPassword_UserNotFound() {
 	newPassword := "new_password"
 
 	claims := jwt.MapClaims{
-		"code": 123.45,
+		"code":  123.45,
 		"email": "test@example.com",
 	}
 
 	validToken := &jwt.Token{Valid: true}
 	suite.mockJwtService.On("ValidateToken", token).Return(validToken, nil)
 	suite.mockJwtService.On("ExtractTokenClaims", validToken).Return(claims, nil)
-	suite.mockUserRepo.On("GetUserByEmail", "test@example.com").Return(nil, errors.New("user not found"))
+	suite.mockUserRepo.On("GetUserByEmail", "test@example.com").Return(nil, domain.ErrUserNotFound)
 
 	// Act
 	err := suite.authUseCase.ResetPassword(token, newPassword)
 
 	// Assert
-	suite.EqualError(err, "user not found")
+	suite.Equal(err, domain.ErrUserNotFound)
 }
 func (suite *AuthUseCaseTestSuite) TestResetPassword_CodeMismatch() {
 	// Arrange
 	token := "valid_token"
 	newPassword := "new_password"
 	user := &domain.User{
-		Email:     "test@example.com",
-		ResetCode: 54321,  // Different reset code
+		Email:      "test@example.com",
+		ResetCode:  54321, // Different reset code
 		ResetToken: token,
 	}
 
 	claims := jwt.MapClaims{
-		"code":  123.45,  // Code in token is different
+		"code":  123.45, // Code in token is different
 		"email": user.Email,
 	}
 
@@ -431,13 +435,13 @@ func (suite *AuthUseCaseTestSuite) TestResetPassword_CodeMismatch() {
 	err := suite.authUseCase.ResetPassword(token, newPassword)
 
 	// Assert
-	suite.EqualError(err, "invalid token")
+	suite.Equal(err, domain.ErrInvalidResetCode)
 }
 func (suite *AuthUseCaseTestSuite) TestHandleGoogleCallback_UserExists_NonGoogleSignin_Failure() {
 	// Arrange
 	user := &domain.User{
 		Email:        "test@example.com",
-		GoogleSignin: false,  // User exists but not signed in with Google
+		GoogleSignin: false, // User exists but not signed in with Google
 	}
 
 	suite.mockUserRepo.On("GetUserByEmail", user.Email).Return(user, nil)
@@ -446,7 +450,7 @@ func (suite *AuthUseCaseTestSuite) TestHandleGoogleCallback_UserExists_NonGoogle
 	_, _, err := suite.authUseCase.HandleGoogleCallback(user)
 
 	// Assert
-	suite.EqualError(err, "user already exists")
+	suite.Equal(err, domain.ErrUserEmailExists)
 }
 func (suite *AuthUseCaseTestSuite) TestHandleGoogleCallback_UserExists_GoogleSignin_Success() {
 	// Arrange
@@ -463,7 +467,7 @@ func (suite *AuthUseCaseTestSuite) TestHandleGoogleCallback_UserExists_GoogleSig
 	accessToken, refreshToken, err := suite.authUseCase.HandleGoogleCallback(user)
 
 	// Assert
-	suite.NoError(err)
+	suite.Nil(err)
 	suite.Equal("access_token", accessToken)
 	suite.Equal("refresh_token", refreshToken)
 }
@@ -474,7 +478,7 @@ func (suite *AuthUseCaseTestSuite) TestHandleGoogleCallback_NewUser_Success() {
 		GoogleSignin: true,
 	}
 
-	suite.mockUserRepo.On("GetUserByEmail", user.Email).Return(nil, errors.New("mongo: no documents in result"))
+	suite.mockUserRepo.On("GetUserByEmail", user.Email).Return(nil, domain.ErrUserNotFound)
 	suite.mockJwtService.On("GenerateToken", user).Return("access_token", "refresh_token", nil)
 	suite.mockUserRepo.On("CreateUser", mock.Anything).Return(nil)
 
@@ -482,7 +486,7 @@ func (suite *AuthUseCaseTestSuite) TestHandleGoogleCallback_NewUser_Success() {
 	accessToken, refreshToken, err := suite.authUseCase.HandleGoogleCallback(user)
 
 	// Assert
-	suite.NoError(err)
+	suite.Nil(err)
 	suite.Equal("access_token", accessToken)
 	suite.Equal("refresh_token", refreshToken)
 }
@@ -493,14 +497,14 @@ func (suite *AuthUseCaseTestSuite) TestHandleGoogleCallback_GenerateTokenFailure
 		GoogleSignin: true,
 	}
 
-	suite.mockUserRepo.On("GetUserByEmail", user.Email).Return(nil, errors.New("mongo: no documents in result"))
-	suite.mockJwtService.On("GenerateToken", user).Return("", "", errors.New("token generation failed"))
+	suite.mockUserRepo.On("GetUserByEmail", user.Email).Return(nil, domain.ErrUserNotFound)
+	suite.mockJwtService.On("GenerateToken", user).Return("", "", domain.ErrTokenGenerationFailed)
 
 	// Act
 	_, _, err := suite.authUseCase.HandleGoogleCallback(user)
 
 	// Assert
-	suite.EqualError(err, "token generation failed")
+	suite.Equal(err, domain.ErrTokenGenerationFailed)
 }
 
 func (suite *AuthUseCaseTestSuite) TestHandleGoogleCallback_Success() {
@@ -509,7 +513,7 @@ func (suite *AuthUseCaseTestSuite) TestHandleGoogleCallback_Success() {
 		Email: "test@example.com",
 	}
 
-	suite.mockUserRepo.On("GetUserByEmail", user.Email).Return(nil, mongo.ErrNoDocuments)
+	suite.mockUserRepo.On("GetUserByEmail", user.Email).Return(nil, domain.ErrUserNotFound)
 	suite.mockJwtService.On("GenerateToken", user).Return("access_token", "refresh_token", nil)
 	suite.mockUserRepo.On("CreateUser", mock.Anything).Return(nil)
 
@@ -517,7 +521,7 @@ func (suite *AuthUseCaseTestSuite) TestHandleGoogleCallback_Success() {
 	accessToken, refreshToken, err := suite.authUseCase.HandleGoogleCallback(user)
 
 	// Assert
-	suite.NoError(err)
+	suite.Nil(err)
 	suite.Equal("access_token", accessToken)
 	suite.Equal("refresh_token", refreshToken)
 }

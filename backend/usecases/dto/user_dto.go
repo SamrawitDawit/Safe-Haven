@@ -9,6 +9,8 @@ type RegisterDTO struct {
 	UserType                string `json:"userType" binding:"required"`
 	Password                string `json:"password" binding:"required"`
 	PhoneNumber             string `json:"phoneNumber"`
+	Language                string `json:"language" binding:"required"`
+	Category                string `json:"category"`
 }
 type LoginDTO struct {
 	UserType                string `json:"userType" binding:"required"`
@@ -22,6 +24,9 @@ func ValidateRegisterDTO(registerDTO RegisterDTO) error {
 	if registerDTO.UserType == "normal" {
 		if registerDTO.FullName == "" {
 			return errors.New("fullname is required")
+		}
+		if registerDTO.Category == "" {
+			return errors.New("category is required")
 		}
 		if registerDTO.Email == "" && registerDTO.PhoneNumber == "" {
 			return errors.New("email or phoneNumber is required")

@@ -1,6 +1,9 @@
 package infrastructure
 
-import "net/smtp"
+import (
+	"backend/domain"
+	"net/smtp"
+)
 
 type EmailService struct {
 	Email    string
@@ -10,7 +13,7 @@ type EmailService struct {
 	Port     string
 }
 
-func (s *EmailService) SendResetPasswordEmail(email string, resetToken string) error {
+func (s *EmailService) SendResetPasswordEmail(email string, resetToken string) *domain.CustomError {
 	resetLink := "http://localhost:8080/reset-password?token=" + resetToken
 
 	from := s.Email
@@ -49,7 +52,7 @@ func (s *EmailService) SendResetPasswordEmail(email string, resetToken string) e
 	auth := smtp.PlainAuth("", s.UserName, s.Password, s.Host)
 	err := smtp.SendMail(s.Host+":"+s.Port, auth, from, []string{to}, []byte(message))
 	if err != nil {
-		return err
+		return domain.ErrEmailSendingFailed
 	}
 	return nil
 }

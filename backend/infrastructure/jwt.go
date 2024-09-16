@@ -2,7 +2,6 @@ package infrastructure
 
 import (
 	"backend/domain"
-	"fmt"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -12,7 +11,7 @@ type JWTService struct {
 	JwtSecret string
 }
 
-func (s *JWTService) GenerateToken(user *domain.User) (string, string, error) {
+func (s *JWTService) GenerateToken(user *domain.User) (string, string, *domain.CustomError) {
 	claims := jwt.MapClaims{
 		"id":       user.ID,
 		"role":     user.Role,
@@ -23,7 +22,7 @@ func (s *JWTService) GenerateToken(user *domain.User) (string, string, error) {
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	accessTokenString, err := accessToken.SignedString([]byte(s.JwtSecret))
 	if err != nil {
-		return "", "", err
+		return "", "", domain.ErrTokenGenerationFailed
 	}
 
 	refreshClaims := jwt.MapClaims{
@@ -35,33 +34,33 @@ func (s *JWTService) GenerateToken(user *domain.User) (string, string, error) {
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
 	refreshTokenString, err := refreshToken.SignedString([]byte(s.JwtSecret))
 	if err != nil {
-		return "", "", err
+		return "", "", domain.ErrRefreshTokenGenerationFailed
 	}
 	return accessTokenString, refreshTokenString, nil
 }
 
-func (s *JWTService) ValidateToken(token string) (*jwt.Token, error) {
+func (s *JWTService) ValidateToken(token string) (*jwt.Token, *domain.CustomError) {
 	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("invalid token")
+			return nil, domain.ErrUnexpectedSigningMethod
 		}
 		return []byte(s.JwtSecret), nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, domain.ErrTokenParsingFailed
 	}
 	return parsedToken, nil
 }
 
-func (s *JWTService) ExtractTokenClaims(token *jwt.Token) (jwt.MapClaims, error) {
+func (s *JWTService) ExtractTokenClaims(token *jwt.Token) (jwt.MapClaims, *domain.CustomError) {
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return nil, fmt.Errorf("invalid token claims")
+		return nil, domain.ErrTokenParsingFailed
 	}
 	return claims, nil
 }
 
-func (s *JWTService) GenerateResetToken(email string, code int64) (string, error) {
+func (s *JWTService) GenerateResetToken(email string, code int64) (string, *domain.CustomError) {
 	claims := jwt.MapClaims{
 		"email": email,
 		"code":  code,
@@ -71,7 +70,7 @@ func (s *JWTService) GenerateResetToken(email string, code int64) (string, error
 	resetToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	resetTokenString, err := resetToken.SignedString([]byte(s.JwtSecret))
 	if err != nil {
-		return "", err
+		return "", domain.ErrResetTokenGenerationFailed
 	}
 	return resetTokenString, nil
 }

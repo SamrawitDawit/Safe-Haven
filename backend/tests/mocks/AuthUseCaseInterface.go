@@ -15,25 +15,27 @@ type AuthUseCaseInterface struct {
 }
 
 // ForgotPassword provides a mock function with given fields: email
-func (_m *AuthUseCaseInterface) ForgotPassword(email string) error {
+func (_m *AuthUseCaseInterface) ForgotPassword(email string) *domain.CustomError {
 	ret := _m.Called(email)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ForgotPassword")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
+	var r0 *domain.CustomError
+	if rf, ok := ret.Get(0).(func(string) *domain.CustomError); ok {
 		r0 = rf(email)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.CustomError)
+		}
 	}
 
 	return r0
 }
 
 // HandleGoogleCallback provides a mock function with given fields: user
-func (_m *AuthUseCaseInterface) HandleGoogleCallback(user *domain.User) (string, string, error) {
+func (_m *AuthUseCaseInterface) HandleGoogleCallback(user *domain.User) (string, string, *domain.CustomError) {
 	ret := _m.Called(user)
 
 	if len(ret) == 0 {
@@ -42,8 +44,8 @@ func (_m *AuthUseCaseInterface) HandleGoogleCallback(user *domain.User) (string,
 
 	var r0 string
 	var r1 string
-	var r2 error
-	if rf, ok := ret.Get(0).(func(*domain.User) (string, string, error)); ok {
+	var r2 *domain.CustomError
+	if rf, ok := ret.Get(0).(func(*domain.User) (string, string, *domain.CustomError)); ok {
 		return rf(user)
 	}
 	if rf, ok := ret.Get(0).(func(*domain.User) string); ok {
@@ -58,17 +60,19 @@ func (_m *AuthUseCaseInterface) HandleGoogleCallback(user *domain.User) (string,
 		r1 = ret.Get(1).(string)
 	}
 
-	if rf, ok := ret.Get(2).(func(*domain.User) error); ok {
+	if rf, ok := ret.Get(2).(func(*domain.User) *domain.CustomError); ok {
 		r2 = rf(user)
 	} else {
-		r2 = ret.Error(2)
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*domain.CustomError)
+		}
 	}
 
 	return r0, r1, r2
 }
 
 // Login provides a mock function with given fields: loginDTO
-func (_m *AuthUseCaseInterface) Login(loginDTO dto.LoginDTO) (string, string, error) {
+func (_m *AuthUseCaseInterface) Login(loginDTO dto.LoginDTO) (string, string, *domain.CustomError) {
 	ret := _m.Called(loginDTO)
 
 	if len(ret) == 0 {
@@ -77,8 +81,8 @@ func (_m *AuthUseCaseInterface) Login(loginDTO dto.LoginDTO) (string, string, er
 
 	var r0 string
 	var r1 string
-	var r2 error
-	if rf, ok := ret.Get(0).(func(dto.LoginDTO) (string, string, error)); ok {
+	var r2 *domain.CustomError
+	if rf, ok := ret.Get(0).(func(dto.LoginDTO) (string, string, *domain.CustomError)); ok {
 		return rf(loginDTO)
 	}
 	if rf, ok := ret.Get(0).(func(dto.LoginDTO) string); ok {
@@ -93,17 +97,19 @@ func (_m *AuthUseCaseInterface) Login(loginDTO dto.LoginDTO) (string, string, er
 		r1 = ret.Get(1).(string)
 	}
 
-	if rf, ok := ret.Get(2).(func(dto.LoginDTO) error); ok {
+	if rf, ok := ret.Get(2).(func(dto.LoginDTO) *domain.CustomError); ok {
 		r2 = rf(loginDTO)
 	} else {
-		r2 = ret.Error(2)
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*domain.CustomError)
+		}
 	}
 
 	return r0, r1, r2
 }
 
 // RefreshToken provides a mock function with given fields: refreshToken
-func (_m *AuthUseCaseInterface) RefreshToken(refreshToken string) (string, string, error) {
+func (_m *AuthUseCaseInterface) RefreshToken(refreshToken string) (string, string, *domain.CustomError) {
 	ret := _m.Called(refreshToken)
 
 	if len(ret) == 0 {
@@ -112,8 +118,8 @@ func (_m *AuthUseCaseInterface) RefreshToken(refreshToken string) (string, strin
 
 	var r0 string
 	var r1 string
-	var r2 error
-	if rf, ok := ret.Get(0).(func(string) (string, string, error)); ok {
+	var r2 *domain.CustomError
+	if rf, ok := ret.Get(0).(func(string) (string, string, *domain.CustomError)); ok {
 		return rf(refreshToken)
 	}
 	if rf, ok := ret.Get(0).(func(string) string); ok {
@@ -128,46 +134,52 @@ func (_m *AuthUseCaseInterface) RefreshToken(refreshToken string) (string, strin
 		r1 = ret.Get(1).(string)
 	}
 
-	if rf, ok := ret.Get(2).(func(string) error); ok {
+	if rf, ok := ret.Get(2).(func(string) *domain.CustomError); ok {
 		r2 = rf(refreshToken)
 	} else {
-		r2 = ret.Error(2)
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*domain.CustomError)
+		}
 	}
 
 	return r0, r1, r2
 }
 
 // Register provides a mock function with given fields: registerDTO
-func (_m *AuthUseCaseInterface) Register(registerDTO dto.RegisterDTO) error {
+func (_m *AuthUseCaseInterface) Register(registerDTO dto.RegisterDTO) *domain.CustomError {
 	ret := _m.Called(registerDTO)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Register")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(dto.RegisterDTO) error); ok {
+	var r0 *domain.CustomError
+	if rf, ok := ret.Get(0).(func(dto.RegisterDTO) *domain.CustomError); ok {
 		r0 = rf(registerDTO)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.CustomError)
+		}
 	}
 
 	return r0
 }
 
 // ResetPassword provides a mock function with given fields: token, newPassword
-func (_m *AuthUseCaseInterface) ResetPassword(token string, newPassword string) error {
+func (_m *AuthUseCaseInterface) ResetPassword(token string, newPassword string) *domain.CustomError {
 	ret := _m.Called(token, newPassword)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ResetPassword")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+	var r0 *domain.CustomError
+	if rf, ok := ret.Get(0).(func(string, string) *domain.CustomError); ok {
 		r0 = rf(token, newPassword)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.CustomError)
+		}
 	}
 
 	return r0

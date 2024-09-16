@@ -16,7 +16,7 @@ type JwtServiceInterface struct {
 }
 
 // ExtractTokenClaims provides a mock function with given fields: token
-func (_m *JwtServiceInterface) ExtractTokenClaims(token *jwt.Token) (jwt.MapClaims, error) {
+func (_m *JwtServiceInterface) ExtractTokenClaims(token *jwt.Token) (jwt.MapClaims, *domain.CustomError) {
 	ret := _m.Called(token)
 
 	if len(ret) == 0 {
@@ -24,8 +24,8 @@ func (_m *JwtServiceInterface) ExtractTokenClaims(token *jwt.Token) (jwt.MapClai
 	}
 
 	var r0 jwt.MapClaims
-	var r1 error
-	if rf, ok := ret.Get(0).(func(*jwt.Token) (jwt.MapClaims, error)); ok {
+	var r1 *domain.CustomError
+	if rf, ok := ret.Get(0).(func(*jwt.Token) (jwt.MapClaims, *domain.CustomError)); ok {
 		return rf(token)
 	}
 	if rf, ok := ret.Get(0).(func(*jwt.Token) jwt.MapClaims); ok {
@@ -36,17 +36,19 @@ func (_m *JwtServiceInterface) ExtractTokenClaims(token *jwt.Token) (jwt.MapClai
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*jwt.Token) error); ok {
+	if rf, ok := ret.Get(1).(func(*jwt.Token) *domain.CustomError); ok {
 		r1 = rf(token)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*domain.CustomError)
+		}
 	}
 
 	return r0, r1
 }
 
 // GenerateResetToken provides a mock function with given fields: email, code
-func (_m *JwtServiceInterface) GenerateResetToken(email string, code int64) (string, error) {
+func (_m *JwtServiceInterface) GenerateResetToken(email string, code int64) (string, *domain.CustomError) {
 	ret := _m.Called(email, code)
 
 	if len(ret) == 0 {
@@ -54,8 +56,8 @@ func (_m *JwtServiceInterface) GenerateResetToken(email string, code int64) (str
 	}
 
 	var r0 string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, int64) (string, error)); ok {
+	var r1 *domain.CustomError
+	if rf, ok := ret.Get(0).(func(string, int64) (string, *domain.CustomError)); ok {
 		return rf(email, code)
 	}
 	if rf, ok := ret.Get(0).(func(string, int64) string); ok {
@@ -64,17 +66,19 @@ func (_m *JwtServiceInterface) GenerateResetToken(email string, code int64) (str
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
+	if rf, ok := ret.Get(1).(func(string, int64) *domain.CustomError); ok {
 		r1 = rf(email, code)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*domain.CustomError)
+		}
 	}
 
 	return r0, r1
 }
 
 // GenerateToken provides a mock function with given fields: user
-func (_m *JwtServiceInterface) GenerateToken(user *domain.User) (string, string, error) {
+func (_m *JwtServiceInterface) GenerateToken(user *domain.User) (string, string, *domain.CustomError) {
 	ret := _m.Called(user)
 
 	if len(ret) == 0 {
@@ -83,8 +87,8 @@ func (_m *JwtServiceInterface) GenerateToken(user *domain.User) (string, string,
 
 	var r0 string
 	var r1 string
-	var r2 error
-	if rf, ok := ret.Get(0).(func(*domain.User) (string, string, error)); ok {
+	var r2 *domain.CustomError
+	if rf, ok := ret.Get(0).(func(*domain.User) (string, string, *domain.CustomError)); ok {
 		return rf(user)
 	}
 	if rf, ok := ret.Get(0).(func(*domain.User) string); ok {
@@ -99,17 +103,19 @@ func (_m *JwtServiceInterface) GenerateToken(user *domain.User) (string, string,
 		r1 = ret.Get(1).(string)
 	}
 
-	if rf, ok := ret.Get(2).(func(*domain.User) error); ok {
+	if rf, ok := ret.Get(2).(func(*domain.User) *domain.CustomError); ok {
 		r2 = rf(user)
 	} else {
-		r2 = ret.Error(2)
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*domain.CustomError)
+		}
 	}
 
 	return r0, r1, r2
 }
 
 // ValidateToken provides a mock function with given fields: token
-func (_m *JwtServiceInterface) ValidateToken(token string) (*jwt.Token, error) {
+func (_m *JwtServiceInterface) ValidateToken(token string) (*jwt.Token, *domain.CustomError) {
 	ret := _m.Called(token)
 
 	if len(ret) == 0 {
@@ -117,8 +123,8 @@ func (_m *JwtServiceInterface) ValidateToken(token string) (*jwt.Token, error) {
 	}
 
 	var r0 *jwt.Token
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*jwt.Token, error)); ok {
+	var r1 *domain.CustomError
+	if rf, ok := ret.Get(0).(func(string) (*jwt.Token, *domain.CustomError)); ok {
 		return rf(token)
 	}
 	if rf, ok := ret.Get(0).(func(string) *jwt.Token); ok {
@@ -129,10 +135,12 @@ func (_m *JwtServiceInterface) ValidateToken(token string) (*jwt.Token, error) {
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
+	if rf, ok := ret.Get(1).(func(string) *domain.CustomError); ok {
 		r1 = rf(token)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*domain.CustomError)
+		}
 	}
 
 	return r0, r1

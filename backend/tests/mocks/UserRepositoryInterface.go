@@ -16,25 +16,27 @@ type UserRepositoryInterface struct {
 }
 
 // CreateUser provides a mock function with given fields: user
-func (_m *UserRepositoryInterface) CreateUser(user *domain.User) error {
+func (_m *UserRepositoryInterface) CreateUser(user *domain.User) *domain.CustomError {
 	ret := _m.Called(user)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateUser")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*domain.User) error); ok {
+	var r0 *domain.CustomError
+	if rf, ok := ret.Get(0).(func(*domain.User) *domain.CustomError); ok {
 		r0 = rf(user)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.CustomError)
+		}
 	}
 
 	return r0
 }
 
 // GetUserByAnonymousDifferentiator provides a mock function with given fields: differentiator
-func (_m *UserRepositoryInterface) GetUserByAnonymousDifferentiator(differentiator string) (*domain.User, error) {
+func (_m *UserRepositoryInterface) GetUserByAnonymousDifferentiator(differentiator string) (*domain.User, *domain.CustomError) {
 	ret := _m.Called(differentiator)
 
 	if len(ret) == 0 {
@@ -42,8 +44,8 @@ func (_m *UserRepositoryInterface) GetUserByAnonymousDifferentiator(differentiat
 	}
 
 	var r0 *domain.User
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*domain.User, error)); ok {
+	var r1 *domain.CustomError
+	if rf, ok := ret.Get(0).(func(string) (*domain.User, *domain.CustomError)); ok {
 		return rf(differentiator)
 	}
 	if rf, ok := ret.Get(0).(func(string) *domain.User); ok {
@@ -54,17 +56,19 @@ func (_m *UserRepositoryInterface) GetUserByAnonymousDifferentiator(differentiat
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
+	if rf, ok := ret.Get(1).(func(string) *domain.CustomError); ok {
 		r1 = rf(differentiator)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*domain.CustomError)
+		}
 	}
 
 	return r0, r1
 }
 
 // GetUserByEmail provides a mock function with given fields: email
-func (_m *UserRepositoryInterface) GetUserByEmail(email string) (*domain.User, error) {
+func (_m *UserRepositoryInterface) GetUserByEmail(email string) (*domain.User, *domain.CustomError) {
 	ret := _m.Called(email)
 
 	if len(ret) == 0 {
@@ -72,8 +76,8 @@ func (_m *UserRepositoryInterface) GetUserByEmail(email string) (*domain.User, e
 	}
 
 	var r0 *domain.User
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*domain.User, error)); ok {
+	var r1 *domain.CustomError
+	if rf, ok := ret.Get(0).(func(string) (*domain.User, *domain.CustomError)); ok {
 		return rf(email)
 	}
 	if rf, ok := ret.Get(0).(func(string) *domain.User); ok {
@@ -84,17 +88,19 @@ func (_m *UserRepositoryInterface) GetUserByEmail(email string) (*domain.User, e
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
+	if rf, ok := ret.Get(1).(func(string) *domain.CustomError); ok {
 		r1 = rf(email)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*domain.CustomError)
+		}
 	}
 
 	return r0, r1
 }
 
 // GetUserByID provides a mock function with given fields: id
-func (_m *UserRepositoryInterface) GetUserByID(id uuid.UUID) (*domain.User, error) {
+func (_m *UserRepositoryInterface) GetUserByID(id uuid.UUID) (*domain.User, *domain.CustomError) {
 	ret := _m.Called(id)
 
 	if len(ret) == 0 {
@@ -102,8 +108,8 @@ func (_m *UserRepositoryInterface) GetUserByID(id uuid.UUID) (*domain.User, erro
 	}
 
 	var r0 *domain.User
-	var r1 error
-	if rf, ok := ret.Get(0).(func(uuid.UUID) (*domain.User, error)); ok {
+	var r1 *domain.CustomError
+	if rf, ok := ret.Get(0).(func(uuid.UUID) (*domain.User, *domain.CustomError)); ok {
 		return rf(id)
 	}
 	if rf, ok := ret.Get(0).(func(uuid.UUID) *domain.User); ok {
@@ -114,17 +120,19 @@ func (_m *UserRepositoryInterface) GetUserByID(id uuid.UUID) (*domain.User, erro
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(uuid.UUID) error); ok {
+	if rf, ok := ret.Get(1).(func(uuid.UUID) *domain.CustomError); ok {
 		r1 = rf(id)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*domain.CustomError)
+		}
 	}
 
 	return r0, r1
 }
 
 // GetUserByPhoneNumber provides a mock function with given fields: phoneNumber
-func (_m *UserRepositoryInterface) GetUserByPhoneNumber(phoneNumber string) (*domain.User, error) {
+func (_m *UserRepositoryInterface) GetUserByPhoneNumber(phoneNumber string) (*domain.User, *domain.CustomError) {
 	ret := _m.Called(phoneNumber)
 
 	if len(ret) == 0 {
@@ -132,8 +140,8 @@ func (_m *UserRepositoryInterface) GetUserByPhoneNumber(phoneNumber string) (*do
 	}
 
 	var r0 *domain.User
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*domain.User, error)); ok {
+	var r1 *domain.CustomError
+	if rf, ok := ret.Get(0).(func(string) (*domain.User, *domain.CustomError)); ok {
 		return rf(phoneNumber)
 	}
 	if rf, ok := ret.Get(0).(func(string) *domain.User); ok {
@@ -144,17 +152,19 @@ func (_m *UserRepositoryInterface) GetUserByPhoneNumber(phoneNumber string) (*do
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
+	if rf, ok := ret.Get(1).(func(string) *domain.CustomError); ok {
 		r1 = rf(phoneNumber)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*domain.CustomError)
+		}
 	}
 
 	return r0, r1
 }
 
 // GetUsersCount provides a mock function with given fields:
-func (_m *UserRepositoryInterface) GetUsersCount() (int, error) {
+func (_m *UserRepositoryInterface) GetUsersCount() (int, *domain.CustomError) {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
@@ -162,8 +172,8 @@ func (_m *UserRepositoryInterface) GetUsersCount() (int, error) {
 	}
 
 	var r0 int
-	var r1 error
-	if rf, ok := ret.Get(0).(func() (int, error)); ok {
+	var r1 *domain.CustomError
+	if rf, ok := ret.Get(0).(func() (int, *domain.CustomError)); ok {
 		return rf()
 	}
 	if rf, ok := ret.Get(0).(func() int); ok {
@@ -172,28 +182,32 @@ func (_m *UserRepositoryInterface) GetUsersCount() (int, error) {
 		r0 = ret.Get(0).(int)
 	}
 
-	if rf, ok := ret.Get(1).(func() error); ok {
+	if rf, ok := ret.Get(1).(func() *domain.CustomError); ok {
 		r1 = rf()
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*domain.CustomError)
+		}
 	}
 
 	return r0, r1
 }
 
 // UpdateUser provides a mock function with given fields: user
-func (_m *UserRepositoryInterface) UpdateUser(user *domain.User) error {
+func (_m *UserRepositoryInterface) UpdateUser(user *domain.User) *domain.CustomError {
 	ret := _m.Called(user)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateUser")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*domain.User) error); ok {
+	var r0 *domain.CustomError
+	if rf, ok := ret.Get(0).(func(*domain.User) *domain.CustomError); ok {
 		r0 = rf(user)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.CustomError)
+		}
 	}
 
 	return r0
