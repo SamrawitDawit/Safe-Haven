@@ -41,7 +41,6 @@ func (suite *AuthUseCaseTestSuite) TestRegister_Success() {
 		FullName: "Test User",
 		Email:    "test@example.com",
 		Password: "password123",
-		UserType: "normal",
 		Category: "general",
 		Language: "Amharic",
 	}
@@ -73,7 +72,6 @@ func (suite *AuthUseCaseTestSuite) TestRegister_Email_Exists_Failure() {
 		FullName: "Test User",
 		Email:    "test@example.com",
 		Password: "password123",
-		UserType: "normal",
 		Category: "general",
 		Language: "Amharic",
 	}
@@ -94,7 +92,6 @@ func (suite *AuthUseCaseTestSuite) TestRegister_EmailExists_GoogleSignin_Success
 		FullName: "Test User",
 		Email:    "test@example.com",
 		Password: "password123",
-		UserType: "normal",
 		Category: "general",
 		Language: "Amharic",
 	}
@@ -124,7 +121,6 @@ func (suite *AuthUseCaseTestSuite) TestRegister_PhoneNumberExists_Failure() {
 		FullName:    "Test User",
 		PhoneNumber: "1234567890",
 		Password:    "password123",
-		UserType:    "normal",
 		Category:    "general",
 		Language:    "Amharic",
 	}
@@ -148,7 +144,6 @@ func (suite *AuthUseCaseTestSuite) TestLogin_Success() {
 	loginDTO := dto.LoginDTO{
 		Email:    "test@example.com",
 		Password: "password123",
-		UserType: "normal",
 	}
 
 	user := &domain.User{
@@ -176,7 +171,6 @@ func (suite *AuthUseCaseTestSuite) TestLogin_UserNotFoundByEmail_Failure() {
 	loginDTO := dto.LoginDTO{
 		Email:    "notfound@example.com",
 		Password: "password123",
-		UserType: "normal",
 	}
 
 	// Mock user not found
@@ -194,7 +188,6 @@ func (suite *AuthUseCaseTestSuite) TestLogin_InvalidPassword_Failure() {
 	loginDTO := dto.LoginDTO{
 		Email:    "test@example.com",
 		Password: "wrongpassword",
-		UserType: "normal",
 	}
 
 	user := &domain.User{

@@ -9,8 +9,6 @@ import (
 type User struct {
 	ID                      uuid.UUID `json:"id" bson:"_id,omitempty"`
 	FullName                string    `json:"fullName" bson:"fullName"`
-	AnonymousDifferentiator string    `json:"anonymousDifferentiator" bson:"anonymousDifferentiator"`
-	UserType                string    `json:"userType" bson:"userType"`
 	Email                   string    `json:"email" bson:"email"`
 	Password                string    `json:"password" bson:"password"`
 	PhoneNumber             string    `json:"phoneNumber" bson:"phoneNumber"`

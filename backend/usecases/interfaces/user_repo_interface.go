@@ -12,6 +12,5 @@ type UserRepositoryInterface interface {
 	GetUserByEmail(email string) (*domain.User, *domain.CustomError)
 	GetUserByID(id uuid.UUID) (*domain.User, *domain.CustomError)
 	GetUserByPhoneNumber(phoneNumber string) (*domain.User, *domain.CustomError)
-	GetUserByAnonymousDifferentiator(differentiator string) (*domain.User, *domain.CustomError)
 	GetUsersCount() (int, *domain.CustomError)
 }

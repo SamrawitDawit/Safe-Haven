@@ -43,7 +43,6 @@ func (suite *AuthControllerTestSuite) TestRegister_Success() {
 		Email:    "test@example.com",
 		Password: "password123",
 		FullName: "John Doe",
-		UserType: "normal",
 		Category: "general",
 		Language: "Amharic",
 	}
@@ -86,7 +85,6 @@ func (suite *AuthControllerTestSuite) TestRegister_Failure() {
 		Email:    "test@example.com",
 		Password: "password123",
 		FullName: "John Doe",
-		UserType: "normal",
 		Category: "general",
 		Language: "Amharic",
 	}
@@ -110,7 +108,6 @@ func (suite *AuthControllerTestSuite) TestLogin_Success() {
 	loginDTO := dto.LoginDTO{
 		Email:    "test@example.com",
 		Password: "password123",
-		UserType: "normal",
 	}
 	acToken := "access-token"
 	refToken := "refresh-token"
@@ -151,7 +148,6 @@ func (suite *AuthControllerTestSuite) TestLogin_Failure() {
 	loginDTO := dto.LoginDTO{
 		Email:    "test@example.com",
 		Password: "password123",
-		UserType: "normal",
 	}
 	suite.mockUsecase.On("Login", loginDTO).Return("", "", domain.ErrInvalidCredentials)
 	body, _ := json.Marshal(loginDTO)

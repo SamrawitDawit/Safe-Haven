@@ -64,16 +64,6 @@ func (u *UserRepository) GetUserByPhoneNumber(phoneNumber string) (*domain.User,
 	return &user, nil
 }
 
-func (u *UserRepository) GetUserByAnonymousDifferentiator(differentiator string) (*domain.User, *domain.CustomError) {
-	var anonUser domain.User
-	filter := bson.M{"anonymousDifferentiator": differentiator}
-	err := u.collection.FindOne(context.TODO(), filter).Decode(&anonUser)
-	if err != nil {
-		return nil, domain.ErrUserNotFound
-	}
-	return &anonUser, nil
-}
-
 func (u *UserRepository) GetUserByID(id uuid.UUID) (*domain.User, *domain.CustomError) {
 	var user domain.User
 	filter := bson.M{"_id": id}

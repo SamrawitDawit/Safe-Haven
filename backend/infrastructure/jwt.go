@@ -26,9 +26,8 @@ func (s *JWTService) GenerateToken(user *domain.User) (string, string, *domain.C
 	}
 
 	refreshClaims := jwt.MapClaims{
-		"id":   user.ID,
-		"type": user.UserType,
-		"exp":  time.Now().Add(time.Hour * 24 * 7).Unix(),
+		"id":  user.ID,
+		"exp": time.Now().Add(time.Hour * 24 * 7).Unix(),
 	}
 
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)

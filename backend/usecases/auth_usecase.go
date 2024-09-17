@@ -50,11 +50,6 @@ func (a *AuthUseCase) Login(loginDTO dto.LoginDTO) (string, string, *domain.Cust
 		if user == nil {
 			return "", "", domain.ErrInvalidCredentials
 		}
-	} else if loginDTO.AnonymousDifferentiator != "" {
-		user, _ = a.userRepo.GetUserByAnonymousDifferentiator(loginDTO.AnonymousDifferentiator)
-		if user == nil {
-			return "", "", domain.ErrInvalidCredentials
-		}
 	}
 	err := a.pwdService.CheckPasswordHash(loginDTO.Password, user.Password)
 	if err != nil {
@@ -94,14 +89,6 @@ func (a *AuthUseCase) Register(registerDTO dto.RegisterDTO) *domain.CustomError 
 		if existingUser != nil {
 			return domain.ErrUserPhoneNumberExists
 		}
-	} else if registerDTO.AnonymousDifferentiator != "" {
-		existingUser, err = a.userRepo.GetUserByAnonymousDifferentiator(registerDTO.AnonymousDifferentiator)
-		if err != nil && err != domain.ErrUserNotFound {
-			return domain.NewCustomError(err.Error(), 500)
-		}
-		if existingUser != nil {
-			return domain.ErrUserAnonymousExists
-		}
 	}
 
 	hashedPassword, err := a.pwdService.HashPassword(registerDTO.Password)
@@ -109,21 +96,19 @@ func (a *AuthUseCase) Register(registerDTO dto.RegisterDTO) *domain.CustomError 
 		return domain.ErrPasswordHashingFailed
 	}
 	new_user := &domain.User{
-		ID:                      uuid.New(),
-		FullName:                registerDTO.FullName,
-		Email:                   registerDTO.Email,
-		AnonymousDifferentiator: registerDTO.AnonymousDifferentiator,
-		Password:                hashedPassword,
-		PhoneNumber:             registerDTO.PhoneNumber,
-		UserType:                registerDTO.UserType,
-		Category:                registerDTO.Category,
-		Language:                registerDTO.Language,
-		Role:                    "regular",
-		Active:                  true,
-		Verified:                false,
-		CounselorAssigned:       false,
-		CreatedAt:               time.Now(),
-		UpdatedAt:               time.Now(),
+		ID:                uuid.New(),
+		FullName:          registerDTO.FullName,
+		Email:             registerDTO.Email,
+		Password:          hashedPassword,
+		PhoneNumber:       registerDTO.PhoneNumber,
+		Category:          registerDTO.Category,
+		Language:          registerDTO.Language,
+		Role:              "regular",
+		Active:            true,
+		Verified:          false,
+		CounselorAssigned: false,
+		CreatedAt:         time.Now(),
+		UpdatedAt:         time.Now(),
 	}
 
 	count, err := a.userRepo.GetUsersCount()
@@ -139,7 +124,6 @@ func (a *AuthUseCase) Register(registerDTO dto.RegisterDTO) *domain.CustomError 
 		existingUser.Email = new_user.Email
 		existingUser.Password = new_user.Password
 		existingUser.PhoneNumber = new_user.PhoneNumber
-		existingUser.UserType = new_user.UserType
 		existingUser.Role = new_user.Role
 		existingUser.Active = new_user.Active
 		existingUser.Verified = new_user.Verified
@@ -257,7 +241,7 @@ func (a *AuthUseCase) ResetPassword(token string, newPassword string) *domain.Cu
 
 func (a *AuthUseCase) HandleGoogleCallback(user *domain.User) (string, string, *domain.CustomError) {
 	existingUser, err := a.userRepo.GetUserByEmail(user.Email)
-	if err != nil && err != domain.ErrUserNotFound{
+	if err != nil && err != domain.ErrUserNotFound {
 		return "", "", err
 	}
 	if existingUser != nil {
