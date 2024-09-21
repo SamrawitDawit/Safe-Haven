@@ -5,7 +5,6 @@ import (
 	"backend/usecases/interfaces"
 	"backend/utils"
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -135,7 +134,6 @@ func (r *UserRepository) GetUserByIDWithLock(id uuid.UUID) (*domain.User, *domai
 	err := r.collection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			fmt.Println(id)
 			return nil, domain.ErrUserNotFound
 		}
 		utils.LogError("Error fetching user by ID", err)

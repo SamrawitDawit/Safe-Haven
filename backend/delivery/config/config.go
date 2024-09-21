@@ -50,11 +50,6 @@ func LoadEnv() error {
 	ENV.ENCRYPT_KEY = os.Getenv("ENCRYPT_KEY")
 	ENV.ALLOWED_ORIGIN = os.Getenv("ALLOWED_ORIGIN")
 
-	fmt.Println("PORT:", ENV.PORT)
-	fmt.Println("DB_NAME:", ENV.DB_NAME)
-	fmt.Println("GOOGLE_CLIENT_ID:", ENV.GOOGLE_CLIENT_ID)
-	fmt.Println("GOOGLE_CLIENT_SECRET:", ENV.GOOGLE_CLIENT_SECRET)
-
 	v := reflect.ValueOf(ENV)
 	typeOfEnv := v.Type()
 

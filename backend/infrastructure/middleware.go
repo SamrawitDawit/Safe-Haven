@@ -3,7 +3,6 @@ package infrastructure
 import (
 	"backend/usecases/interfaces"
 	"backend/utils"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -75,10 +74,6 @@ func AuthMiddleware(JwtService interfaces.JwtServiceInterface) gin.HandlerFunc {
 
 		context.Set("role", role)
 		context.Set("id", id)
-
-		// Log the role for debugging
-		fmt.Println("role:", role)
-
 		context.Next()
 	}
 }

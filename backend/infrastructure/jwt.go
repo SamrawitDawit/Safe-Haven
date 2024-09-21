@@ -2,7 +2,6 @@ package infrastructure
 
 import (
 	"backend/domain"
-	"fmt"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -25,7 +24,7 @@ func (s *JWTService) GenerateToken(user *domain.User) (string, string, *domain.C
 	if err != nil {
 		return "", "", domain.ErrTokenGenerationFailed
 	}
-	fmt.Println(user.ID)
+
 	refreshClaims := jwt.MapClaims{
 		"id":  user.ID.String(),
 		"exp": time.Now().Add(time.Hour * 24 * 7),
