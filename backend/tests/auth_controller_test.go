@@ -23,7 +23,7 @@ import (
 type AuthControllerTestSuite struct {
 	suite.Suite
 	mockUsecase  *mocks.AuthUseCaseInterface
-	controller   *controllers.AuthContoller
+	controller   *controllers.AuthController
 	recorder     *httptest.ResponseRecorder
 	googleConfig *oauth2.Config
 }
@@ -46,7 +46,8 @@ func (suite *AuthControllerTestSuite) TestRegister_Success() {
 		Category: "general",
 		Language: "Amharic",
 	}
-	suite.mockUsecase.On("Register", registerDTO).Return(nil)
+	user := &domain.User{}
+	suite.mockUsecase.On("Register", registerDTO).Return(user, nil)
 	body, _ := json.Marshal(registerDTO)
 	req, _ := http.NewRequest(http.MethodPost, "/register", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -88,7 +89,7 @@ func (suite *AuthControllerTestSuite) TestRegister_Failure() {
 		Category: "general",
 		Language: "Amharic",
 	}
-	suite.mockUsecase.On("Register", registerDTO).Return(domain.ErrUserCreationFailed)
+	suite.mockUsecase.On("Register", registerDTO).Return(nil, domain.ErrUserCreationFailed)
 	body, _ := json.Marshal(registerDTO)
 	req, _ := http.NewRequest(http.MethodPost, "/register", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -306,73 +307,6 @@ func (suite *AuthControllerTestSuite) TestResetPassword_Failure() {
 	assert.Contains(suite.T(), suite.recorder.Body.String(), "Password reset failed")
 	suite.mockUsecase.AssertExpectations(suite.T())
 }
-
-// func (suite *AuthControllerTestSuite) TestHandleGoogleCallback_Success() {
-// 	code := "valid-code"
-// 	token := &oauth2.Token{
-// 		AccessToken:  "access-token",
-// 		RefreshToken: "refresh-token",
-// 	}
-// 	idToken := "valid-id-token"
-// 	payload := &idtoken.Payload{
-// 		Claims: map[string]interface{}{
-// 			"email": "test@example.com",
-// 			"name":  "John Doe",
-// 		},
-// 	}
-
-// 	suite.mockUsecase.On("HandleGoogleCallback", mock.Anything).Return("access-token", "refresh-token", nil)
-// 	suite.mockUsecase.On("Exchange", mock.Anything, code).Return(token, nil)
-// 	suite.mockUsecase.On("Validate", mock.Anything, idToken, suite.googleConfig.ClientID).Return(payload, nil)
-
-// 	req, _ := http.NewRequest(http.MethodGet, "/callback?code="+code, nil)
-// 	c, _ := gin.CreateTestContext(suite.recorder)
-// 	c.Request = req
-
-// 	suite.controller.HandleGoogleCallback(c)
-
-// 	assert.Equal(suite.T(), http.StatusOK, suite.recorder.Code)
-// 	assert.Contains(suite.T(), suite.recorder.Body.String(), "Google login successful")
-// 	suite.mockUsecase.AssertExpectations(suite.T())
-// }
-
-// func (suite *AuthControllerTestSuite) TestHandleGoogleCallback_ExchangeFailure() {
-// 	code := "invalid-code"
-
-// 	suite.mockUsecase.On("Exchange", mock.Anything, code).Return(nil, errors.New("exchange failed"))
-
-// 	req, _ := http.NewRequest(http.MethodGet, "/callback?code="+code, nil)
-// 	c, _ := gin.CreateTestContext(suite.recorder)
-// 	c.Request = req
-
-// 	suite.controller.HandleGoogleCallback(c)
-
-// 	assert.Equal(suite.T(), http.StatusInternalServerError, suite.recorder.Code)
-// 	assert.Contains(suite.T(), suite.recorder.Body.String(), "Google login failed")
-// 	suite.mockUsecase.AssertExpectations(suite.T())
-// }
-
-// func (suite *AuthControllerTestSuite) TestHandleGoogleCallback_ValidationFailure() {
-// 	code := "valid-code"
-// 	token := &oauth2.Token{
-// 		AccessToken:  "access-token",
-// 		RefreshToken: "refresh-token",
-// 	}
-// 	idToken := "valid-id-token"
-
-// 	suite.mockUsecase.On("Exchange", mock.Anything, code).Return(token, nil)
-// 	suite.mockUsecase.On("Validate", mock.Anything, idToken, suite.googleConfig.ClientID).Return(nil, errors.New("validation failed"))
-
-// 	req, _ := http.NewRequest(http.MethodGet, "/callback?code="+code, nil)
-// 	c, _ := gin.CreateTestContext(suite.recorder)
-// 	c.Request = req
-
-// 	suite.controller.HandleGoogleCallback(c)
-
-// 	assert.Equal(suite.T(), http.StatusInternalServerError, suite.recorder.Code)
-// 	assert.Contains(suite.T(), suite.recorder.Body.String(), "Google login failed")
-// 	suite.mockUsecase.AssertExpectations(suite.T())
-// }
 
 func (suite *AuthControllerTestSuite) TearDownTest() {
 	suite.mockUsecase.AssertExpectations(suite.T())

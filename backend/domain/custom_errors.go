@@ -20,27 +20,25 @@ func NewCustomError(message string, statusCode int) *CustomError {
 }
 
 var (
-	ErrUserNotFound           = NewCustomError("User not found", http.StatusNotFound)
-	ErrUserEmailExists        = NewCustomError("Email already exists", 409)
-	ErrUserPhoneNumberExists  = NewCustomError("Phone number already exists", 409)
-	ErrUserAnonymousExists    = NewCustomError("Anonymous differentiator already exists", 409)
-	ErrUserCreationFailed     = NewCustomError("Failed to create user", http.StatusInternalServerError)
-	ErrUserUpdateFailed       = NewCustomError("Failed to update user", http.StatusInternalServerError)
-	ErrUserPromotionFailed    = NewCustomError("Failed to promote user", http.StatusInternalServerError)
-	ErrUserFetchFailed        = NewCustomError("Failed to fetch users", http.StatusInternalServerError)
-	ErrUserCursorDecodeFailed = NewCustomError("Failed to decode user data", http.StatusInternalServerError)
-	ErrUserCountFailed        = NewCustomError("Failed to count users", http.StatusInternalServerError)
+	ErrUserNotFound          = NewCustomError("User not found", http.StatusNotFound)
+	ErrUserEmailExists       = NewCustomError("Email already exists", 409)
+	ErrUserPhoneNumberExists = NewCustomError("Phone number already exists", 409)
+	ErrUserCreationFailed    = NewCustomError("Failed to create user", http.StatusInternalServerError)
+	ErrUserUpdateFailed      = NewCustomError("Failed to update user", http.StatusInternalServerError)
+	ErrUserFetchFailed       = NewCustomError("Failed to fetch users", http.StatusInternalServerError)
+	ErrUserCountFailed       = NewCustomError("Failed to count users", http.StatusInternalServerError)
+	ErrRaceCondition         = NewCustomError("Concurrency error", http.StatusInternalServerError)
 )
 
 // auth-related errors
 var (
-	ErrUserTokenUpdateFailed   = NewCustomError("Failed to update user tokens", http.StatusInternalServerError)
 	ErrInvalidCredentials      = NewCustomError("Invalid email or password", http.StatusUnauthorized)
 	ErrInvalidToken            = NewCustomError("Invalid token", http.StatusUnauthorized)
 	ErrInvalidRefreshToken     = NewCustomError("Invalid refresh token", http.StatusUnauthorized)
 	ErrInvalidResetCode        = NewCustomError("Invalid reset code", http.StatusBadRequest)
 	ErrUnAuthorized            = NewCustomError("Unauthorized access", http.StatusUnauthorized)
 	ErrUnexpectedSigningMethod = NewCustomError("Unexpected signing method", http.StatusInternalServerError)
+	ErrEmailOrPhoneRequired    = NewCustomError("Email or phone number is required", http.StatusBadRequest)
 )
 
 // JWT-related errors
@@ -50,12 +48,17 @@ var (
 	ErrTokenParsingFailed           = NewCustomError("Invalid token", http.StatusUnauthorized)
 	ErrResetTokenGenerationFailed   = NewCustomError("Failed to generate reset token", http.StatusInternalServerError)
 	ErrInvalidTokenClaims           = NewCustomError("Invalid token claims", http.StatusUnauthorized)
+	ErrInvalidResetToken            = NewCustomError("Invalid reset token", http.StatusBadRequest)
 )
 var (
-	// Password-related errors
 	ErrPasswordHashingFailed = NewCustomError("Failed to hash password", http.StatusInternalServerError)
+	ErrEmailSendingFailed    = NewCustomError("Failed to send email", http.StatusInternalServerError)
+	ErrInvalidPassword       = NewCustomError("Invalid password", http.StatusUnauthorized)
+	ErrResetTokenAlreadySent = NewCustomError("Reset token already sent, Try again after 5 minutes", http.StatusBadRequest)
+)
 
-	// Email-related errors
-	ErrEmailSendingFailed = NewCustomError("Failed to send email", http.StatusInternalServerError)
-	ErrInvalidPassword    = NewCustomError("Invalid password", http.StatusUnauthorized)
+//Encryption-related errors
+var (
+	ErrEncryptionFailed = NewCustomError("Failed to encrypt data", http.StatusInternalServerError)
+	ErrDecryptionFailed = NewCustomError("Failed to decrypt data", http.StatusInternalServerError)
 )

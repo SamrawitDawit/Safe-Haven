@@ -5,14 +5,12 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-func Config() *oauth2.Config {
-	var Client_se = ENV.GOOGLE_CLIENT_SECRET
-	var Client_id = ENV.GOOGLE_CLIENT_ID
-
+func GoogleConfig() *oauth2.Config {
+	LoadEnv()
 	var (
 		GoogleOAuthConfig = &oauth2.Config{
-			ClientID:     Client_id,
-			ClientSecret: Client_se,
+			ClientID:     ENV.GOOGLE_CLIENT_ID,
+			ClientSecret: ENV.GOOGLE_CLIENT_SECRET,
 			RedirectURL:  "http://localhost:8080/auth/google/callback",
 			Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile", "openid"},
 			Endpoint:     google.Endpoint,
@@ -22,4 +20,4 @@ func Config() *oauth2.Config {
 
 }
 
-var GoogleOAuthConfig = Config()
+var GoogleOAuthConfig = GoogleConfig()

@@ -23,7 +23,7 @@ func (suite *PasswordServiceSuite) SetupTest() {
 
 func (suite *PasswordServiceSuite) TestHashPassword_Success() {
 	password := "mySecureP@ssw0rd"
-	hashedPassword, err := suite.service.HashPassword(password)
+	hashedPassword, err := suite.service.Hash(password)
 	assert.Nil(suite.T(), err)
 	assert.NotEmpty(suite.T(), hashedPassword)
 
@@ -35,18 +35,18 @@ func (suite *PasswordServiceSuite) TestHashPassword_Success() {
 
 func (suite *PasswordServiceSuite) TestComparePassword_Success() {
 	password := "mySecureP@ssw0rd"
-	hashedPassword, _ := suite.service.HashPassword(password)
+	hashedPassword, _ := suite.service.Hash(password)
 
-	err := suite.service.CheckPasswordHash(password, hashedPassword)
+	err := suite.service.CheckHash(password, hashedPassword)
 	suite.Nil(err)
 }
 
 func (suite *PasswordServiceSuite) TestComparePassword_Failure() {
 	password := "mySecureP@ssw0rd"
-	hashedPassword, _ := suite.service.HashPassword(password)
+	hashedPassword, _ := suite.service.Hash(password)
 
 	// Incorrect password should not match
-	err := suite.service.CheckPasswordHash("wrongPassword", hashedPassword)
+	err := suite.service.CheckHash("wrongPassword", hashedPassword)
 	suite.Equal(err, domain.ErrInvalidPassword)
 }
 

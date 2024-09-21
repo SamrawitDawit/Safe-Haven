@@ -146,23 +146,35 @@ func (_m *AuthUseCaseInterface) RefreshToken(refreshToken string) (string, strin
 }
 
 // Register provides a mock function with given fields: registerDTO
-func (_m *AuthUseCaseInterface) Register(registerDTO dto.RegisterDTO) *domain.CustomError {
+func (_m *AuthUseCaseInterface) Register(registerDTO dto.RegisterDTO) (*domain.User, *domain.CustomError) {
 	ret := _m.Called(registerDTO)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Register")
 	}
 
-	var r0 *domain.CustomError
-	if rf, ok := ret.Get(0).(func(dto.RegisterDTO) *domain.CustomError); ok {
+	var r0 *domain.User
+	var r1 *domain.CustomError
+	if rf, ok := ret.Get(0).(func(dto.RegisterDTO) (*domain.User, *domain.CustomError)); ok {
+		return rf(registerDTO)
+	}
+	if rf, ok := ret.Get(0).(func(dto.RegisterDTO) *domain.User); ok {
 		r0 = rf(registerDTO)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*domain.CustomError)
+			r0 = ret.Get(0).(*domain.User)
 		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(dto.RegisterDTO) *domain.CustomError); ok {
+		r1 = rf(registerDTO)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*domain.CustomError)
+		}
+	}
+
+	return r0, r1
 }
 
 // ResetPassword provides a mock function with given fields: token, newPassword

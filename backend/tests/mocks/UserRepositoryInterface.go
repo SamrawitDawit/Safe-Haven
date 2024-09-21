@@ -35,38 +35,6 @@ func (_m *UserRepositoryInterface) CreateUser(user *domain.User) *domain.CustomE
 	return r0
 }
 
-// GetUserByAnonymousDifferentiator provides a mock function with given fields: differentiator
-func (_m *UserRepositoryInterface) GetUserByAnonymousDifferentiator(differentiator string) (*domain.User, *domain.CustomError) {
-	ret := _m.Called(differentiator)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetUserByAnonymousDifferentiator")
-	}
-
-	var r0 *domain.User
-	var r1 *domain.CustomError
-	if rf, ok := ret.Get(0).(func(string) (*domain.User, *domain.CustomError)); ok {
-		return rf(differentiator)
-	}
-	if rf, ok := ret.Get(0).(func(string) *domain.User); ok {
-		r0 = rf(differentiator)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*domain.User)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string) *domain.CustomError); ok {
-		r1 = rf(differentiator)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*domain.CustomError)
-		}
-	}
-
-	return r0, r1
-}
-
 // GetUserByEmail provides a mock function with given fields: email
 func (_m *UserRepositoryInterface) GetUserByEmail(email string) (*domain.User, *domain.CustomError) {
 	ret := _m.Called(email)
@@ -105,6 +73,38 @@ func (_m *UserRepositoryInterface) GetUserByID(id uuid.UUID) (*domain.User, *dom
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetUserByID")
+	}
+
+	var r0 *domain.User
+	var r1 *domain.CustomError
+	if rf, ok := ret.Get(0).(func(uuid.UUID) (*domain.User, *domain.CustomError)); ok {
+		return rf(id)
+	}
+	if rf, ok := ret.Get(0).(func(uuid.UUID) *domain.User); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(uuid.UUID) *domain.CustomError); ok {
+		r1 = rf(id)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*domain.CustomError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetUserByIDWithLock provides a mock function with given fields: id
+func (_m *UserRepositoryInterface) GetUserByIDWithLock(id uuid.UUID) (*domain.User, *domain.CustomError) {
+	ret := _m.Called(id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserByIDWithLock")
 	}
 
 	var r0 *domain.User
@@ -204,6 +204,26 @@ func (_m *UserRepositoryInterface) UpdateUser(user *domain.User) *domain.CustomE
 	var r0 *domain.CustomError
 	if rf, ok := ret.Get(0).(func(*domain.User) *domain.CustomError); ok {
 		r0 = rf(user)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.CustomError)
+		}
+	}
+
+	return r0
+}
+
+// UpdateUserFields provides a mock function with given fields: id, fields
+func (_m *UserRepositoryInterface) UpdateUserFields(id uuid.UUID, fields map[string]interface{}) *domain.CustomError {
+	ret := _m.Called(id, fields)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateUserFields")
+	}
+
+	var r0 *domain.CustomError
+	if rf, ok := ret.Get(0).(func(uuid.UUID, map[string]interface{}) *domain.CustomError); ok {
+		r0 = rf(id, fields)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*domain.CustomError)

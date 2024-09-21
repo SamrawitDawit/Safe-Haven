@@ -10,6 +10,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func CorsMiddleware() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		context.Header("Access-Control-Allow-Origin", "*")
+		context.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+		context.Header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+		context.Header("Access-Control-Expose-Headers", "Content-Length")
+		context.Header("Access-Control-Allow-Credentials", "true")
+
+		if context.Request.Method == "OPTIONS" {
+			context.AbortWithStatus(http.StatusNoContent)
+			return
+		}
+
+		context.Next()
+	}
+}
+
 func AuthMiddleware(JwtService interfaces.JwtServiceInterface) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		authHeader := context.GetHeader("Authorization")
@@ -89,6 +106,6 @@ func CounselorMiddleware() gin.HandlerFunc {
 			context.JSON(http.StatusForbidden, res)
 			context.Abort()
 		}
-		defer context.Next()
+		context.Next()
 	}
 }

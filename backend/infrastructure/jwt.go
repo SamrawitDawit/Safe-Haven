@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"backend/domain"
+	"fmt"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -16,7 +17,7 @@ func (s *JWTService) GenerateToken(user *domain.User) (string, string, *domain.C
 		"id":       user.ID,
 		"role":     user.Role,
 		"category": user.Category,
-		"exp":      time.Now().Add(time.Minute * 5).Unix(),
+		"exp":      time.Now().Add(time.Minute * 5),
 	}
 
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -24,10 +25,10 @@ func (s *JWTService) GenerateToken(user *domain.User) (string, string, *domain.C
 	if err != nil {
 		return "", "", domain.ErrTokenGenerationFailed
 	}
-
+	fmt.Println(user.ID)
 	refreshClaims := jwt.MapClaims{
-		"id":  user.ID,
-		"exp": time.Now().Add(time.Hour * 24 * 7).Unix(),
+		"id":  user.ID.String(),
+		"exp": time.Now().Add(time.Hour * 24 * 7),
 	}
 
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)

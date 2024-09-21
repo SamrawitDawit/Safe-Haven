@@ -3,6 +3,6 @@ package interfaces
 import "backend/domain"
 
 type HashingServiceInterface interface {
-	HashPassword(password string) (string, *domain.CustomError)
-	CheckPasswordHash(hashedPassword string, password string) *domain.CustomError
+	Hash(value string) (string, *domain.CustomError)
+	CheckHash(hash string, value string) *domain.CustomError
 }

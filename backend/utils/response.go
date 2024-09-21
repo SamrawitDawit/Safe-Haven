@@ -1,5 +1,7 @@
 package utils
 
+import "log"
+
 type Response struct {
 	Status  int         `json:"status"`
 	Message string      `json:"message"`
@@ -20,5 +22,13 @@ func ErrorResponse(status int, message string, err string) Response {
 		Status:  status,
 		Message: message,
 		Error:   err,
+	}
+}
+
+func LogError(message string, err error) {
+	if err != nil {
+		log.Printf("[ERROR] %s: %v\n", message, err)
+	} else {
+		log.Printf("[ERROR] %s\n", message)
 	}
 }

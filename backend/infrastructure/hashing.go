@@ -8,16 +8,16 @@ import (
 
 type HashingService struct{}
 
-func (s *HashingService) HashPassword(password string) (string, *domain.CustomError) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+func (s *HashingService) Hash(value string) (string, *domain.CustomError) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(value), bcrypt.DefaultCost)
 	if err != nil {
 		return "", domain.ErrPasswordHashingFailed
 	}
 	return string(bytes), nil
 }
 
-func (s *HashingService) CheckPasswordHash(password, hash string) *domain.CustomError {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+func (s *HashingService) CheckHash(value, hash string) *domain.CustomError {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(value))
 	if err != nil {
 		return domain.ErrInvalidPassword
 	}

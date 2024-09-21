@@ -5,13 +5,16 @@ import (
 	"backend/usecases/dto"
 	"backend/usecases/interfaces"
 	"math/rand"
+	"net/http"
+	"regexp"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
 )
 
 type AuthUseCaseInterface interface {
-	Register(registerDTO dto.RegisterDTO) *domain.CustomError
+	Register(registerDTO dto.RegisterDTO) (*domain.User, *domain.CustomError)
 	Login(loginDTO dto.LoginDTO) (string, string, *domain.CustomError)
 	RefreshToken(refreshToken string) (string, string, *domain.CustomError)
 	ForgotPassword(email string) *domain.CustomError
@@ -19,81 +22,177 @@ type AuthUseCaseInterface interface {
 	HandleGoogleCallback(user *domain.User) (string, string, *domain.CustomError)
 }
 
-func NewAuthUseCase(userRepo interfaces.UserRepositoryInterface, jwtservice interfaces.JwtServiceInterface, emailService interfaces.EmailServiceInterface, pwdService interfaces.HashingServiceInterface) AuthUseCaseInterface {
+func NewAuthUseCase(userRepo interfaces.UserRepositoryInterface, jwtservice interfaces.JwtServiceInterface, emailService interfaces.EmailServiceInterface, pwdService interfaces.HashingServiceInterface, encryptionService interfaces.EncryptionServiceInterface) AuthUseCaseInterface {
 	return &AuthUseCase{
-		userRepo:     userRepo,
-		jwtService:   jwtservice,
-		emailService: emailService,
-		pwdService:   pwdService,
+		userRepo:          userRepo,
+		jwtService:        jwtservice,
+		emailService:      emailService,
+		pwdService:        pwdService,
+		encryptionService: encryptionService,
 	}
 }
 
 type AuthUseCase struct {
-	userRepo     interfaces.UserRepositoryInterface
-	jwtService   interfaces.JwtServiceInterface
-	emailService interfaces.EmailServiceInterface
-	pwdService   interfaces.HashingServiceInterface
+	userRepo          interfaces.UserRepositoryInterface
+	jwtService        interfaces.JwtServiceInterface
+	emailService      interfaces.EmailServiceInterface
+	pwdService        interfaces.HashingServiceInterface
+	encryptionService interfaces.EncryptionServiceInterface
 }
 
-func (a *AuthUseCase) Login(loginDTO dto.LoginDTO) (string, string, *domain.CustomError) {
-	var user *domain.User
-	if loginDTO.Email != "" {
-		user, _ = a.userRepo.GetUserByEmail(loginDTO.Email)
-		if user != nil && user.GoogleSignin {
-			return "", "", domain.ErrInvalidCredentials
-		}
-		if user == nil {
-			return "", "", domain.ErrInvalidCredentials
-		}
-	} else if loginDTO.PhoneNumber != "" {
-		user, _ = a.userRepo.GetUserByPhoneNumber(loginDTO.PhoneNumber)
-		if user == nil {
-			return "", "", domain.ErrInvalidCredentials
-		}
+func (a *AuthUseCase) validateRegisterDTO(registerDTO dto.RegisterDTO) *domain.CustomError {
+	if registerDTO.Email == "" && registerDTO.PhoneNumber == "" {
+		return domain.ErrEmailOrPhoneRequired
 	}
-	err := a.pwdService.CheckPasswordHash(loginDTO.Password, user.Password)
-	if err != nil {
-		return "", "", domain.ErrInvalidCredentials
+	return nil
+}
+
+func (a *AuthUseCase) validateLoginDTO(loginDTO dto.LoginDTO) *domain.CustomError {
+	if loginDTO.Email == "" && loginDTO.PhoneNumber == "" {
+		return domain.ErrEmailOrPhoneRequired
 	}
+	return nil
+}
+
+// Password validation function
+func validatePassword(password string) *domain.CustomError {
+	// Minimum 8 characters, at least one uppercase letter, one lowercase letter, one number, and one special character
+	var (
+		minLength        = 8
+		uppercaseRegex   = regexp.MustCompile(`[A-Z]`)
+		lowercaseRegex   = regexp.MustCompile(`[a-z]`)
+		numberRegex      = regexp.MustCompile(`[0-9]`)
+		specialCharRegex = regexp.MustCompile(`[!@#~$%^&*()+|_.,]`)
+	)
+
+	if len(password) < minLength {
+		return domain.NewCustomError("password must be at least 8 characters long", http.StatusBadRequest)
+	}
+	if !uppercaseRegex.MatchString(password) {
+		return domain.NewCustomError("password must contain at least one uppercase letter", http.StatusBadRequest)
+	}
+	if !lowercaseRegex.MatchString(password) {
+		return domain.NewCustomError("password must contain at least one lowercase letter", http.StatusBadRequest)
+	}
+	if !numberRegex.MatchString(password) {
+		return domain.NewCustomError("password must contain at least one number", http.StatusBadRequest)
+	}
+	if !specialCharRegex.MatchString(password) {
+		return domain.NewCustomError("password must contain at least one special character", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (a *AuthUseCase) generateAndStoreTokens(user *domain.User) (string, string, *domain.CustomError) {
 	accessToken, refreshToken, err := a.jwtService.GenerateToken(user)
 	if err != nil {
 		return "", "", err
 	}
-	user.AccessToken = accessToken
-	user.RefreshToken = refreshToken
-	err = a.userRepo.UpdateUser(user)
+
+	encryptedAccessToken, err := a.encryptionService.Encrypt(accessToken)
+	if err != nil {
+		return "", "", err
+	}
+	encryptedRefreshToken, err := a.encryptionService.Encrypt(refreshToken)
+	if err != nil {
+		return "", "", err
+	}
+
+	user.AccessToken = encryptedAccessToken
+	user.RefreshToken = encryptedRefreshToken
+
+	updated_fields := map[string]interface{}{
+		"accessToken":  encryptedAccessToken,
+		"refreshToken": encryptedRefreshToken,
+	}
+	err = a.userRepo.UpdateUserFields(user.ID, updated_fields)
+	if err != nil {
+		return "", "", err
+	}
+
+	return accessToken, refreshToken, nil
+}
+
+func (a *AuthUseCase) generateResetToken(email string) (int64, string, *domain.CustomError) {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	min, max := 10000, 100000
+	randomNumber := r.Int63n(int64(max-min)) + int64(min)
+	resetToken, err := a.jwtService.GenerateResetToken(email, randomNumber)
+	if err != nil {
+		return 0, "", err
+	}
+	return randomNumber, resetToken, nil
+}
+
+func (a *AuthUseCase) Login(loginDTO dto.LoginDTO) (string, string, *domain.CustomError) {
+	var user *domain.User
+	var err *domain.CustomError
+	err = a.validateLoginDTO(loginDTO)
+	if err != nil {
+		return "", "", err
+	}
+	if loginDTO.Email != "" {
+		user, err = a.userRepo.GetUserByEmail(loginDTO.Email)
+		if err != nil {
+			return "", "", err
+		}
+		if user != nil && user.GoogleSignin {
+			return "", "", domain.ErrInvalidCredentials
+		}
+	} else if loginDTO.PhoneNumber != "" {
+		user, err = a.userRepo.GetUserByPhoneNumber(loginDTO.PhoneNumber)
+		if err != nil {
+			return "", "", err
+		}
+	}
+	err = a.pwdService.CheckHash(loginDTO.Password, user.Password)
+	if err != nil {
+		return "", "", err
+	}
+
+	accessToken, refreshToken, err := a.generateAndStoreTokens(user)
 	if err != nil {
 		return "", "", err
 	}
 	return accessToken, refreshToken, nil
 }
 
-func (a *AuthUseCase) Register(registerDTO dto.RegisterDTO) *domain.CustomError {
+func (a *AuthUseCase) Register(registerDTO dto.RegisterDTO) (*domain.User, *domain.CustomError) {
 	var existingUser *domain.User
 	var err *domain.CustomError
 	//checking if user already exists
+	err = a.validateRegisterDTO(registerDTO)
+	if err != nil {
+		return nil, err
+	}
+	// Password validation
+	err = validatePassword(registerDTO.Password)
+	if err != nil {
+		return nil, err
+	}
 	if registerDTO.Email != "" {
 		existingUser, err = a.userRepo.GetUserByEmail(registerDTO.Email)
 		if err != nil && err != domain.ErrUserNotFound {
-			return domain.NewCustomError(err.Error(), 500)
+			return nil, err
 		}
 		if existingUser != nil && !existingUser.GoogleSignin {
-			return domain.ErrUserEmailExists
+			return nil, domain.ErrUserEmailExists
 		}
 
 	} else if registerDTO.PhoneNumber != "" {
 		existingUser, err = a.userRepo.GetUserByPhoneNumber(registerDTO.PhoneNumber)
 		if err != nil && err != domain.ErrUserNotFound {
-			return domain.NewCustomError(err.Error(), 500)
+			return nil, err
 		}
 		if existingUser != nil {
-			return domain.ErrUserPhoneNumberExists
+			return nil, domain.ErrUserPhoneNumberExists
 		}
 	}
 
-	hashedPassword, err := a.pwdService.HashPassword(registerDTO.Password)
+	hashedPassword, err := a.pwdService.Hash(registerDTO.Password)
 	if err != nil {
-		return domain.ErrPasswordHashingFailed
+		return nil, err
 	}
 	new_user := &domain.User{
 		ID:                uuid.New(),
@@ -113,7 +212,7 @@ func (a *AuthUseCase) Register(registerDTO dto.RegisterDTO) *domain.CustomError 
 
 	count, err := a.userRepo.GetUsersCount()
 	if err != nil {
-		return domain.ErrUserCountFailed
+		return nil, err
 	}
 	if count == 0 {
 		new_user.Role = "admin"
@@ -132,11 +231,15 @@ func (a *AuthUseCase) Register(registerDTO dto.RegisterDTO) *domain.CustomError 
 		existingUser.GoogleSignin = false
 		err = a.userRepo.UpdateUser(existingUser)
 		if err != nil {
-			return domain.ErrUserUpdateFailed
+			return nil, err
 		}
-		return nil
+		return existingUser, nil
 	}
-	return a.userRepo.CreateUser(new_user)
+	err = a.userRepo.CreateUser(new_user)
+	if err != nil {
+		return nil, err
+	}
+	return new_user, nil
 }
 
 func (a *AuthUseCase) RefreshToken(refreshToken string) (string, string, *domain.CustomError) {
@@ -146,35 +249,39 @@ func (a *AuthUseCase) RefreshToken(refreshToken string) (string, string, *domain
 	}
 	claims, err := a.jwtService.ExtractTokenClaims(token)
 	if err != nil {
-		return "", "", domain.ErrInvalidToken
+		return "", "", err
 	}
 
 	id := uuid.MustParse(claims["id"].(string))
-	user, err := a.userRepo.GetUserByID(id)
+	user, err := a.userRepo.GetUserByIDWithLock(id)
 	if err != nil || user == nil {
 		return "", "", err
 	}
-	token, err = a.jwtService.ValidateToken(user.RefreshToken)
-	if err != nil || !token.Valid {
-		return "", "", domain.ErrInvalidRefreshToken
-	}
-	if user.RefreshToken != refreshToken {
-		return "", "", domain.ErrInvalidRefreshToken
-	}
-
-	new_accessToken, new_refreshToken, err := a.jwtService.GenerateToken(user)
+	defer a.releaseUserLock(user.ID)
+	token_from_DB := user.RefreshToken
+	decryptedToken, err := a.encryptionService.Decrypt(token_from_DB)
 	if err != nil {
 		return "", "", err
 	}
+	if decryptedToken != refreshToken {
+		return "", "", domain.ErrInvalidRefreshToken
+	}
 
-	user.AccessToken = new_accessToken
-	user.RefreshToken = new_refreshToken
-	err = a.userRepo.UpdateUser(user)
+	accessToken, refreshToken, err := a.generateAndStoreTokens(user)
 	if err != nil {
 		return "", "", err
 	}
-
-	return new_accessToken, new_refreshToken, nil
+	return accessToken, refreshToken, nil
+}
+func (a *AuthUseCase) releaseUserLock(userID uuid.UUID) *domain.CustomError {
+	updated_fields := map[string]interface{}{
+		"lock": false,
+	}
+	err := a.userRepo.UpdateUserFields(userID, updated_fields)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (a *AuthUseCase) ForgotPassword(email string) *domain.CustomError {
@@ -182,20 +289,32 @@ func (a *AuthUseCase) ForgotPassword(email string) *domain.CustomError {
 	if err != nil {
 		return err
 	}
+
+	if user.ResetToken != "" && user.ResetTokenExpiry.After(time.Now()) {
+		return domain.ErrResetTokenAlreadySent
+	}
 	// send email
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-
-	min, max := 10000, 100000
-
-	randomNumber := r.Int63n(int64(max-min)) + int64(min)
-	resetToken, err := a.jwtService.GenerateResetToken(user.Email, randomNumber)
+	randomNumber, resetToken, err := a.generateResetToken(email)
 	if err != nil {
 		return err
 	}
+	encryptedResetToken, err := a.encryptionService.Encrypt(resetToken)
+	if err != nil {
+		return err
+	}
+	code := strconv.FormatInt(randomNumber, 10)
+	hashedCode, err := a.pwdService.Hash(code)
+	if err != nil {
+		return err
+	}
+	expiryTime := time.Now().Add(time.Minute * 5)
+	updated_fields := map[string]interface{}{
+		"resetCode":        hashedCode,
+		"resetToken":       encryptedResetToken,
+		"resetTokenExpiry": expiryTime,
+	}
 
-	user.ResetCode = randomNumber
-	user.ResetToken = resetToken
-	err = a.userRepo.UpdateUser(user)
+	err = a.userRepo.UpdateUserFields(user.ID, updated_fields)
 	if err != nil {
 		return err
 	}
@@ -213,30 +332,51 @@ func (a *AuthUseCase) ResetPassword(token string, newPassword string) *domain.Cu
 	}
 	code, ok := claims["code"].(float64)
 	if !ok {
-		return domain.ErrInvalidTokenClaims
+		return domain.NewCustomError("Invalid code", http.StatusBadRequest)
 	}
 	email, ok := claims["email"].(string)
 	if !ok {
-		return domain.ErrInvalidTokenClaims
+		return domain.NewCustomError("Invalid email", http.StatusBadRequest)
 	}
 	user, err := a.userRepo.GetUserByEmail(email)
 	if err != nil || user == nil {
 		return err
 	}
-	if user.ResetCode != int64(code) {
+	codestr := strconv.FormatInt(int64(code), 10)
+	err = a.pwdService.CheckHash(codestr, user.ResetCode)
+	if err != nil {
 		return domain.ErrInvalidResetCode
 	}
-	if user.ResetToken != token {
-		return domain.ErrInvalidTokenClaims
-	}
-	hashedPassword, err := a.pwdService.HashPassword(newPassword)
+	stored_reset_token := user.ResetToken
+	decryptedToken, err := a.encryptionService.Decrypt(stored_reset_token)
 	if err != nil {
 		return err
 	}
-	user.ResetCode = 0
-	user.ResetToken = ""
-	user.Password = string(hashedPassword)
-	return a.userRepo.UpdateUser(user)
+	if decryptedToken != token {
+		return domain.ErrInvalidResetToken
+	}
+	//validating password
+	err = validatePassword(newPassword)
+	if err != nil {
+		return err
+	}
+	hashedPassword, err := a.pwdService.Hash(newPassword)
+	if err != nil {
+		return err
+	}
+
+	updated_fields := map[string]interface{}{
+		"password":         string(hashedPassword),
+		"resetCode":        "",
+		"resetToken":       "",
+		"resetTokenExpiry": nil,
+	}
+
+	err = a.userRepo.UpdateUserFields(user.ID, updated_fields)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (a *AuthUseCase) HandleGoogleCallback(user *domain.User) (string, string, *domain.CustomError) {
@@ -248,26 +388,19 @@ func (a *AuthUseCase) HandleGoogleCallback(user *domain.User) (string, string, *
 		if !user.GoogleSignin {
 			return "", "", domain.ErrUserEmailExists
 		}
-		accessToken, refreshToken, err := a.jwtService.GenerateToken(user)
-		if err != nil {
-			return "", "", err
-		}
-		user.AccessToken = accessToken
-		user.RefreshToken = refreshToken
-		err = a.userRepo.UpdateUser(user)
+		accessToken, refreshToken, err := a.generateAndStoreTokens(existingUser)
 		if err != nil {
 			return "", "", err
 		}
 		return accessToken, refreshToken, nil
 
 	}
-	accessToken, refreshToken, err := a.jwtService.GenerateToken(user)
+	accessToken, refreshToken, err := a.generateAndStoreTokens(user)
 	if err != nil {
 		return "", "", err
 	}
+
 	user.ID = uuid.New()
-	user.AccessToken = accessToken
-	user.RefreshToken = refreshToken
 	user.Role = "regular"
 	user.Active = true
 	user.CreatedAt = time.Now()

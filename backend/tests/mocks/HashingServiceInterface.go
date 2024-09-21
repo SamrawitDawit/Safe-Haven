@@ -13,17 +13,17 @@ type HashingServiceInterface struct {
 	mock.Mock
 }
 
-// CheckPasswordHash provides a mock function with given fields: hashedPassword, password
-func (_m *HashingServiceInterface) CheckPasswordHash(hashedPassword string, password string) *domain.CustomError {
-	ret := _m.Called(hashedPassword, password)
+// CheckHash provides a mock function with given fields: hash, value
+func (_m *HashingServiceInterface) CheckHash(hash string, value string) *domain.CustomError {
+	ret := _m.Called(hash, value)
 
 	if len(ret) == 0 {
-		panic("no return value specified for CheckPasswordHash")
+		panic("no return value specified for CheckHash")
 	}
 
 	var r0 *domain.CustomError
 	if rf, ok := ret.Get(0).(func(string, string) *domain.CustomError); ok {
-		r0 = rf(hashedPassword, password)
+		r0 = rf(hash, value)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*domain.CustomError)
@@ -33,27 +33,27 @@ func (_m *HashingServiceInterface) CheckPasswordHash(hashedPassword string, pass
 	return r0
 }
 
-// HashPassword provides a mock function with given fields: password
-func (_m *HashingServiceInterface) HashPassword(password string) (string, *domain.CustomError) {
-	ret := _m.Called(password)
+// Hash provides a mock function with given fields: value
+func (_m *HashingServiceInterface) Hash(value string) (string, *domain.CustomError) {
+	ret := _m.Called(value)
 
 	if len(ret) == 0 {
-		panic("no return value specified for HashPassword")
+		panic("no return value specified for Hash")
 	}
 
 	var r0 string
 	var r1 *domain.CustomError
 	if rf, ok := ret.Get(0).(func(string) (string, *domain.CustomError)); ok {
-		return rf(password)
+		return rf(value)
 	}
 	if rf, ok := ret.Get(0).(func(string) string); ok {
-		r0 = rf(password)
+		r0 = rf(value)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	if rf, ok := ret.Get(1).(func(string) *domain.CustomError); ok {
-		r1 = rf(password)
+		r1 = rf(value)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*domain.CustomError)

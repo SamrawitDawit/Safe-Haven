@@ -13,34 +13,33 @@ type EmailService struct {
 	Port     string
 }
 
-func (s *EmailService) SendResetPasswordEmail(email string, resetToken string) *domain.CustomError {
+func (s *EmailService) BuildResetPasswordEmail(resetToken string) string {
 	resetLink := "http://localhost:8080/reset-password?token=" + resetToken
+
+	return `
+		<!DOCTYPE html>
+		<html>
+		    <head></head>
+		    <body>
+		        <div>
+			        <h1>Reset Password</h1>
+				    <p>Hello,</p>
+				    <p>We received a request to reset your password. Click the button below to reset it:</p>
+				    <a href="` + resetLink + `">Reset Password</a>
+				    <p>If you did not request this, please ignore this email.</p>
+				    <p>Thanks,</p>
+			    </div>
+		    </body>
+	    </html>`
+}
+
+func (s *EmailService) SendResetPasswordEmail(email string, resetToken string) *domain.CustomError {
+	body := s.BuildResetPasswordEmail(resetToken)
 
 	from := s.Email
 	to := email
 
 	subject := "Reset Password"
-	body := `
-		<!DOCTYPE html>
-		<html>
-		    <head>
-		        <style>
-		        </style>
-
-		    </head>
-		    <body>
-		        <div class = "container">
-			        <h1>Reset Password</h1>
-				    <p>Hello</p>
-				    <p> We received a request to reset your password. Click the button below to reset it: </p>
-				    <a href="` + resetLink + `">Reset Password</a>
-				    <p>If you did not request a password reset, please ignore this email.</p>
-				    <p>Thanks</p>
-			    </div>
-		    </body>
-	    </html>
-				`
-
 	//MIME Headers
 	message := "MIME-Version: 1.0" + "\r\n"
 	message += "Content-type: text/html; charset=\"UTF-8\"\r\n"

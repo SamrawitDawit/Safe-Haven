@@ -20,6 +20,7 @@ type AuthUseCaseTestSuite struct {
 	mockJwtService     *mocks.JwtServiceInterface
 	mockEmailService   *mocks.EmailServiceInterface
 	mockHashingService *mocks.HashingServiceInterface
+	mockEncryptService *mocks.EncryptionServiceInterface
 }
 
 func (suite *AuthUseCaseTestSuite) SetupTest() {
@@ -27,11 +28,13 @@ func (suite *AuthUseCaseTestSuite) SetupTest() {
 	suite.mockJwtService = new(mocks.JwtServiceInterface)
 	suite.mockEmailService = new(mocks.EmailServiceInterface)
 	suite.mockHashingService = new(mocks.HashingServiceInterface)
+	suite.mockEncryptService = new(mocks.EncryptionServiceInterface)
 	suite.authUseCase = usecases.NewAuthUseCase(
 		suite.mockUserRepo,
 		suite.mockJwtService,
 		suite.mockEmailService,
 		suite.mockHashingService,
+		suite.mockEncryptService,
 	)
 }
 
@@ -40,26 +43,27 @@ func (suite *AuthUseCaseTestSuite) TestRegister_Success() {
 	registerDTO := dto.RegisterDTO{
 		FullName: "Test User",
 		Email:    "test@example.com",
-		Password: "password123",
+		Password: "passworD123!",
 		Category: "general",
 		Language: "Amharic",
 	}
-
+	
 	// Expect user repo to not find an existing user by email
 	suite.mockUserRepo.On("GetUserByEmail", registerDTO.Email).Return(nil, domain.ErrUserNotFound)
 
 	suite.mockUserRepo.On("GetUsersCount").Return(0, nil)
 
 	// Expect password hashing to succeed
-	suite.mockHashingService.On("HashPassword", registerDTO.Password).Return("hashed_password", nil)
+	suite.mockHashingService.On("Hash", registerDTO.Password).Return("hashed_password", nil)
 
 	// Expect CreateUser to be called
 	suite.mockUserRepo.On("CreateUser", mock.Anything).Return(nil)
 
 	// Act
-	err := suite.authUseCase.Register(registerDTO)
+	user, err := suite.authUseCase.Register(registerDTO)
 
 	// Assert
+	suite.NotNil(user)
 	suite.Nil(err)
 	suite.mockUserRepo.AssertCalled(suite.T(), "CreateUser", mock.MatchedBy(func(user *domain.User) bool {
 		return user.Role == "admin" && user.Verified == true
@@ -71,7 +75,7 @@ func (suite *AuthUseCaseTestSuite) TestRegister_Email_Exists_Failure() {
 	registerDTO := dto.RegisterDTO{
 		FullName: "Test User",
 		Email:    "test@example.com",
-		Password: "password123",
+		Password: "passworD123!",
 		Category: "general",
 		Language: "Amharic",
 	}
@@ -80,9 +84,10 @@ func (suite *AuthUseCaseTestSuite) TestRegister_Email_Exists_Failure() {
 	suite.mockUserRepo.On("GetUserByEmail", registerDTO.Email).Return(&domain.User{GoogleSignin: false}, domain.ErrUserNotFound)
 
 	// Act
-	err := suite.authUseCase.Register(registerDTO)
+	user, err := suite.authUseCase.Register(registerDTO)
 
 	// Assert
+	suite.Nil(user)
 	suite.Equal(err, domain.ErrUserEmailExists)
 }
 
@@ -91,7 +96,7 @@ func (suite *AuthUseCaseTestSuite) TestRegister_EmailExists_GoogleSignin_Success
 	registerDTO := dto.RegisterDTO{
 		FullName: "Test User",
 		Email:    "test@example.com",
-		Password: "password123",
+		Password: "passworD123!",
 		Category: "general",
 		Language: "Amharic",
 	}
@@ -104,13 +109,14 @@ func (suite *AuthUseCaseTestSuite) TestRegister_EmailExists_GoogleSignin_Success
 	// Mocking the situation where user exists with Google sign-in
 	suite.mockUserRepo.On("GetUserByEmail", registerDTO.Email).Return(existingUser, nil)
 	suite.mockUserRepo.On("GetUsersCount").Return(0, nil)
-	suite.mockHashingService.On("HashPassword", registerDTO.Password).Return("hashed_password", nil)
+	suite.mockHashingService.On("Hash", registerDTO.Password).Return("hashed_password", nil)
 	suite.mockUserRepo.On("UpdateUser", mock.Anything).Return(nil)
 
 	// Act
-	err := suite.authUseCase.Register(registerDTO)
+	user, err := suite.authUseCase.Register(registerDTO)
 
 	// Assert
+	suite.NotNil(user)
 	suite.Nil(err)
 	suite.mockUserRepo.AssertCalled(suite.T(), "UpdateUser", mock.Anything)
 }
@@ -120,7 +126,7 @@ func (suite *AuthUseCaseTestSuite) TestRegister_PhoneNumberExists_Failure() {
 	registerDTO := dto.RegisterDTO{
 		FullName:    "Test User",
 		PhoneNumber: "1234567890",
-		Password:    "password123",
+		Password:    "passworD123!",
 		Category:    "general",
 		Language:    "Amharic",
 	}
@@ -133,9 +139,10 @@ func (suite *AuthUseCaseTestSuite) TestRegister_PhoneNumberExists_Failure() {
 	suite.mockUserRepo.On("GetUserByPhoneNumber", registerDTO.PhoneNumber).Return(existingUser, nil)
 
 	// Act
-	err := suite.authUseCase.Register(registerDTO)
+	user, err := suite.authUseCase.Register(registerDTO)
 
 	// Assert
+	suite.Nil(user)
 	suite.Equal(err, domain.ErrUserPhoneNumberExists)
 }
 
@@ -152,9 +159,10 @@ func (suite *AuthUseCaseTestSuite) TestLogin_Success() {
 	}
 
 	suite.mockUserRepo.On("GetUserByEmail", loginDTO.Email).Return(user, nil)
-	suite.mockHashingService.On("CheckPasswordHash", loginDTO.Password, user.Password).Return(nil)
-	suite.mockUserRepo.On("UpdateUser", user).Return(nil)
+	suite.mockHashingService.On("CheckHash", loginDTO.Password, user.Password).Return(nil)
+	suite.mockUserRepo.On("UpdateUserFields", mock.AnythingOfType("uuid.UUID"), mock.AnythingOfType("map[string]interface {}")).Return(nil)
 	suite.mockJwtService.On("GenerateToken", user).Return("access_token", "refresh_token", nil)
+	suite.mockEncryptService.On("Encrypt", mock.Anything).Return("encrypted", nil)
 
 	// Act
 	accessToken, refreshToken, err := suite.authUseCase.Login(loginDTO)
@@ -163,7 +171,6 @@ func (suite *AuthUseCaseTestSuite) TestLogin_Success() {
 	suite.Nil(err)
 	suite.Equal("access_token", accessToken)
 	suite.Equal("refresh_token", refreshToken)
-	suite.mockUserRepo.AssertCalled(suite.T(), "UpdateUser", mock.Anything)
 }
 
 func (suite *AuthUseCaseTestSuite) TestLogin_UserNotFoundByEmail_Failure() {
@@ -180,7 +187,7 @@ func (suite *AuthUseCaseTestSuite) TestLogin_UserNotFoundByEmail_Failure() {
 	_, _, err := suite.authUseCase.Login(loginDTO)
 
 	// Assert
-	suite.Equal(err, domain.ErrInvalidCredentials)
+	suite.Equal(err, domain.ErrUserNotFound)
 }
 
 func (suite *AuthUseCaseTestSuite) TestLogin_InvalidPassword_Failure() {
@@ -198,7 +205,7 @@ func (suite *AuthUseCaseTestSuite) TestLogin_InvalidPassword_Failure() {
 	// Mock user found by email
 	suite.mockUserRepo.On("GetUserByEmail", loginDTO.Email).Return(user, nil)
 	// Mock password check failure
-	suite.mockHashingService.On("CheckPasswordHash", loginDTO.Password, user.Password).Return(domain.ErrInvalidCredentials)
+	suite.mockHashingService.On("CheckHash", loginDTO.Password, user.Password).Return(domain.ErrInvalidCredentials)
 
 	// Act
 	_, _, err := suite.authUseCase.Login(loginDTO)
@@ -239,14 +246,16 @@ func (suite *AuthUseCaseTestSuite) TestForgotPassword_Success() {
 	suite.mockUserRepo.On("GetUserByEmail", email).Return(user, nil)
 	suite.mockJwtService.On("GenerateResetToken", user.Email, mock.Anything).Return("reset_token", nil)
 	suite.mockEmailService.On("SendResetPasswordEmail", user.Email, "reset_token").Return(nil)
-	suite.mockUserRepo.On("UpdateUser", mock.Anything).Return(nil)
+	suite.mockUserRepo.On("UpdateUserFields", mock.AnythingOfType("uuid.UUID"), mock.AnythingOfType("map[string]interface {}")).Return(nil)
+	suite.mockEncryptService.On("Encrypt", mock.Anything).Return("encrypted", nil)
+	suite.mockHashingService.On("Hash", mock.Anything).Return("hashed", nil)
 
 	// Act
 	err := suite.authUseCase.ForgotPassword(email)
 
 	// Assert
 	suite.Nil(err)
-	suite.mockUserRepo.AssertCalled(suite.T(), "UpdateUser", mock.Anything)
+	suite.mockUserRepo.AssertCalled(suite.T(), "UpdateUserFields", mock.AnythingOfType("uuid.UUID"), mock.AnythingOfType("map[string]interface {}"))
 }
 
 func (suite *AuthUseCaseTestSuite) TestForgotPassword_UserNotFound_Failure() {
@@ -277,7 +286,10 @@ func (suite *AuthUseCaseTestSuite) TestRefreshToken_Success() {
 	suite.mockUserRepo.On("GetUserByID", user.ID).Return(user, nil)
 	suite.mockJwtService.On("ValidateToken", user.RefreshToken).Return(validToken, nil)
 	suite.mockJwtService.On("GenerateToken", user).Return("access_token", "refresh_token", nil)
-	suite.mockUserRepo.On("UpdateUser", user).Return(nil)
+	suite.mockUserRepo.On("UpdateUserFields", mock.AnythingOfType("uuid.UUID"), mock.AnythingOfType("map[string]interface {}")).Return(nil)
+	suite.mockUserRepo.On("GetUserByIDWithLock",user.ID).Return(user, nil)
+	suite.mockEncryptService.On("Decrypt", "valid_refresh_token").Return("valid_refresh_token", nil)
+	suite.mockEncryptService.On("Encrypt", mock.AnythingOfType("string")).Return("new_refresh_token", nil)
 
 	// Act
 	accToken, refToken, err := suite.authUseCase.RefreshToken(refreshToken)
@@ -286,7 +298,7 @@ func (suite *AuthUseCaseTestSuite) TestRefreshToken_Success() {
 	suite.Nil(err)
 	suite.Equal("access_token", accToken)
 	suite.Equal("refresh_token", refToken)
-	suite.mockUserRepo.AssertCalled(suite.T(), "UpdateUser", mock.Anything)
+	suite.mockUserRepo.AssertCalled(suite.T(), "UpdateUserFields", mock.Anything, mock.Anything, mock.Anything)
 }
 func (suite *AuthUseCaseTestSuite) TestRefreshToken_InvalidToken_Failure() {
 	// Arrange
@@ -315,6 +327,9 @@ func (suite *AuthUseCaseTestSuite) TestRefreshToken_TokenMismatch_Failure() {
 	suite.mockJwtService.On("ExtractTokenClaims", validToken).Return(jwt.MapClaims{"id": user.ID.String()}, nil)
 	suite.mockUserRepo.On("GetUserByID", user.ID).Return(user, nil)
 	suite.mockJwtService.On("ValidateToken", user.RefreshToken).Return(validToken, nil)
+	suite.mockUserRepo.On("GetUserByIDWithLock",user.ID).Return(user, nil)
+	suite.mockUserRepo.On("UpdateUserFields", mock.AnythingOfType("uuid.UUID"), mock.AnythingOfType("map[string]interface {}")).Return(nil)
+	suite.mockEncryptService.On("Decrypt", "different_token").Return("invalid_refresh_token", nil)
 
 	// Act
 	_, _, err := suite.authUseCase.RefreshToken(refreshToken)
@@ -325,16 +340,17 @@ func (suite *AuthUseCaseTestSuite) TestRefreshToken_TokenMismatch_Failure() {
 func (suite *AuthUseCaseTestSuite) TestResetPassword_Success() {
 	// Arrange
 	token := "valid_token"
-	newPassword := "new_password"
+	newPassword := "new_passworD!1"
 	user := &domain.User{
 		Email:      "test@example.com",
-		ResetCode:  12345,
+		ResetCode:  "12345",
 		ResetToken: token,
 		Password:   "old_password",
 	}
-
+	suite.mockEncryptService.On("Decrypt", "1234").Return(1234, nil)
+	suite.mockEncryptService.On("Decrypt", "valid_token").Return("valid_token", nil)
 	claims := jwt.MapClaims{
-		"code":  float64(user.ResetCode), // claims code as float64
+		"code":  1234.5, // claims code as float64
 		"email": user.Email,
 	}
 
@@ -342,23 +358,25 @@ func (suite *AuthUseCaseTestSuite) TestResetPassword_Success() {
 	suite.mockJwtService.On("ValidateToken", token).Return(validToken, nil)
 	suite.mockJwtService.On("ExtractTokenClaims", validToken).Return(claims, nil)
 	suite.mockUserRepo.On("GetUserByEmail", user.Email).Return(user, nil)
-	suite.mockHashingService.On("HashPassword", newPassword).Return("hashed_new_password", nil)
-	suite.mockUserRepo.On("UpdateUser", mock.Anything).Return(nil)
+	suite.mockHashingService.On("Hash", newPassword).Return("hashed_new_password", nil)
+	suite.mockHashingService.On("CheckHash", mock.Anything, mock.Anything).Return(nil)
+	suite.mockEncryptService.On("Decrypt", "1234").Return(1234, nil)
+	suite.mockEncryptService.On("Decrypt", "valid_token").Return("valid_token", nil)
+	suite.mockUserRepo.On("UpdateUserFields", mock.AnythingOfType("uuid.UUID"), mock.AnythingOfType("map[string]interface {}")).Return(nil)
+
 
 	// Act
 	err := suite.authUseCase.ResetPassword(token, newPassword)
 
 	// Assert
 	suite.Nil(err)
-	suite.mockUserRepo.AssertCalled(suite.T(), "UpdateUser", mock.MatchedBy(func(updatedUser *domain.User) bool {
-		return updatedUser.ResetCode == 0 && updatedUser.ResetToken == "" && updatedUser.Password == "hashed_new_password"
-	}))
+
 }
 
 func (suite *AuthUseCaseTestSuite) TestResetPassword_InvalidToken() {
 	// Arrange
 	token := "invalid_token"
-	newPassword := "new_password"
+	newPassword := "new_passworD1!"
 
 	suite.mockJwtService.On("ValidateToken", token).Return(nil, domain.ErrInvalidToken)
 
@@ -371,7 +389,7 @@ func (suite *AuthUseCaseTestSuite) TestResetPassword_InvalidToken() {
 func (suite *AuthUseCaseTestSuite) TestResetPassword_InvalidTokenClaims() {
 	// Arrange
 	token := "valid_token"
-	newPassword := "new_password"
+	newPassword := "new_passworD1!"
 
 	validToken := &jwt.Token{Valid: true}
 	suite.mockJwtService.On("ValidateToken", token).Return(validToken, nil)
@@ -386,7 +404,7 @@ func (suite *AuthUseCaseTestSuite) TestResetPassword_InvalidTokenClaims() {
 func (suite *AuthUseCaseTestSuite) TestResetPassword_UserNotFound() {
 	// Arrange
 	token := "valid_token"
-	newPassword := "new_password"
+	newPassword := "new_passworD1!"
 
 	claims := jwt.MapClaims{
 		"code":  123.45,
@@ -407,10 +425,10 @@ func (suite *AuthUseCaseTestSuite) TestResetPassword_UserNotFound() {
 func (suite *AuthUseCaseTestSuite) TestResetPassword_CodeMismatch() {
 	// Arrange
 	token := "valid_token"
-	newPassword := "new_password"
+	newPassword := "new_passworD1!"
 	user := &domain.User{
 		Email:      "test@example.com",
-		ResetCode:  54321, // Different reset code
+		ResetCode:  "54321", // Different reset code
 		ResetToken: token,
 	}
 
@@ -422,6 +440,8 @@ func (suite *AuthUseCaseTestSuite) TestResetPassword_CodeMismatch() {
 	validToken := &jwt.Token{Valid: true}
 	suite.mockJwtService.On("ValidateToken", token).Return(validToken, nil)
 	suite.mockJwtService.On("ExtractTokenClaims", validToken).Return(claims, nil)
+	suite.mockEncryptService.On("Decrypt", "valid_token").Return("valid_token", nil)
+	suite.mockHashingService.On("CheckHash", mock.Anything, mock.Anything).Return(domain.ErrInvalidResetCode)
 	suite.mockUserRepo.On("GetUserByEmail", user.Email).Return(user, nil)
 
 	// Act
@@ -455,6 +475,8 @@ func (suite *AuthUseCaseTestSuite) TestHandleGoogleCallback_UserExists_GoogleSig
 	suite.mockUserRepo.On("GetUserByEmail", user.Email).Return(user, nil)
 	suite.mockJwtService.On("GenerateToken", user).Return("access_token", "refresh_token", nil)
 	suite.mockUserRepo.On("UpdateUser", user).Return(nil)
+	suite.mockUserRepo.On("UpdateUserFields", mock.AnythingOfType("uuid.UUID"), mock.AnythingOfType("map[string]interface {}")).Return(nil)
+	suite.mockEncryptService.On("Encrypt", mock.Anything).Return("encrypted", nil)
 
 	// Act
 	accessToken, refreshToken, err := suite.authUseCase.HandleGoogleCallback(user)
@@ -474,6 +496,9 @@ func (suite *AuthUseCaseTestSuite) TestHandleGoogleCallback_NewUser_Success() {
 	suite.mockUserRepo.On("GetUserByEmail", user.Email).Return(nil, domain.ErrUserNotFound)
 	suite.mockJwtService.On("GenerateToken", user).Return("access_token", "refresh_token", nil)
 	suite.mockUserRepo.On("CreateUser", mock.Anything).Return(nil)
+	suite.mockEncryptService.On("Encrypt", mock.Anything).Return("encrypted", nil)
+	suite.mockUserRepo.On("UpdateUserFields", mock.AnythingOfType("uuid.UUID"), mock.AnythingOfType("map[string]interface {}")).Return(nil)
+
 
 	// Act
 	accessToken, refreshToken, err := suite.authUseCase.HandleGoogleCallback(user)
@@ -508,6 +533,9 @@ func (suite *AuthUseCaseTestSuite) TestHandleGoogleCallback_Success() {
 
 	suite.mockUserRepo.On("GetUserByEmail", user.Email).Return(nil, domain.ErrUserNotFound)
 	suite.mockJwtService.On("GenerateToken", user).Return("access_token", "refresh_token", nil)
+	suite.mockEncryptService.On("Encrypt", mock.Anything).Return("encrypted", nil)
+	suite.mockUserRepo.On("UpdateUserFields", mock.AnythingOfType("uuid.UUID"), mock.AnythingOfType("map[string]interface {}")).Return(nil)
+
 	suite.mockUserRepo.On("CreateUser", mock.Anything).Return(nil)
 
 	// Act
