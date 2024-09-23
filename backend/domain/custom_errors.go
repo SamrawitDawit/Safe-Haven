@@ -62,3 +62,11 @@ var (
 	ErrEncryptionFailed = NewCustomError("Failed to encrypt data", http.StatusInternalServerError)
 	ErrDecryptionFailed = NewCustomError("Failed to decrypt data", http.StatusInternalServerError)
 )
+
+// Report-related errors
+var (
+	ErrReportNotFound       = NewCustomError("Report not found", http.StatusNotFound)
+	ErrReportCreationFailed = NewCustomError("Failed to create report", http.StatusInternalServerError)
+	ErrReportUpdateFailed   = NewCustomError("Failed to update report", http.StatusInternalServerError)
+	ErrReportFetchFailed    = NewCustomError("Failed to fetch reports", http.StatusInternalServerError)
+)
