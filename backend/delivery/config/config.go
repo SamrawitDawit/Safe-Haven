@@ -25,7 +25,6 @@ type EnvironmentVariables struct {
 	GOOGLE_CLIENT_SECRET string
 	USER_COLLECTION      string
 	ENCRYPT_KEY          string
-	ALLOWED_ORIGIN       string
 }
 
 var ENV EnvironmentVariables
@@ -48,7 +47,6 @@ func LoadEnv() error {
 	ENV.GOOGLE_CLIENT_SECRET = os.Getenv("GOOGLE_CLIENT_SECRET")
 	ENV.USER_COLLECTION = os.Getenv("USER_COLLECTION")
 	ENV.ENCRYPT_KEY = os.Getenv("ENCRYPT_KEY")
-	ENV.ALLOWED_ORIGIN = os.Getenv("ALLOWED_ORIGIN")
 
 	v := reflect.ValueOf(ENV)
 	typeOfEnv := v.Type()
