@@ -65,8 +65,9 @@ var (
 
 // Report-related errors
 var (
-	ErrReportNotFound       = NewCustomError("Report not found", http.StatusNotFound)
-	ErrReportCreationFailed = NewCustomError("Failed to create report", http.StatusInternalServerError)
-	ErrReportUpdateFailed   = NewCustomError("Failed to update report", http.StatusInternalServerError)
-	ErrReportFetchFailed    = NewCustomError("Failed to fetch reports", http.StatusInternalServerError)
+	ErrReportNotFound              = NewCustomError("Report not found", http.StatusNotFound)
+	ErrReportCreationFailed        = NewCustomError("Failed to create report", http.StatusInternalServerError)
+	ErrReportUpdateFailed          = NewCustomError("Failed to update report", http.StatusInternalServerError)
+	ErrReportFetchFailed           = NewCustomError("Failed to fetch reports", http.StatusInternalServerError)
+	ErrIncompleteReportInformation = NewCustomError("Incomplete Report Information", http.StatusBadRequest)
 )

@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"backend/domain"
+	"backend/usecases/interfaces"
 	"backend/utils"
 	"context"
 
@@ -14,7 +15,7 @@ type ReportRepository struct {
 	collection *mongo.Collection
 }
 
-func NewReportRepo(db *mongo.Database, collectionName string) *ReportRepository {
+func NewReportRepo(db *mongo.Database, collectionName string) interfaces.ReportRepositoryInterface {
 	return &ReportRepository{
 		collection: db.Collection(collectionName),
 	}
@@ -42,16 +43,16 @@ func (r *ReportRepository) UpdateReportFields(reportID uuid.UUID, fields map[str
 	return nil
 }
 
-func (r *ReportRepository) GetReportByID(reportID uuid.UUID) *domain.Report {
+func (r *ReportRepository) GetReportByID(reportID uuid.UUID) (*domain.Report, *domain.CustomError) {
 	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
 	defer cancel()
 	var report *domain.Report
 	err := r.collection.FindOne(ctx, bson.M{"_id": reportID}).Decode(&report)
 	if err != nil {
 		utils.LogError("Failed to get report", err)
-		return nil
+		return nil, domain.ErrReportNotFound
 	}
-	return report
+	return report, nil
 }
 
 func (r *ReportRepository) GetReportsByReporterID(reporterID uuid.UUID) ([]*domain.Report, *domain.CustomError) {
@@ -144,5 +145,5 @@ func (r *ReportRepository) DeleteReport(reportID uuid.UUID) *domain.CustomError 
 		utils.LogError("Failed to delete report", err)
 		return domain.ErrReportUpdateFailed
 	}
-	return nil                                                                                                
+	return nil
 }
