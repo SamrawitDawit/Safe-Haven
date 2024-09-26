@@ -72,23 +72,26 @@ func (_m *AuthUseCaseInterface) HandleGoogleCallback(user *domain.User) (string,
 }
 
 // Login provides a mock function with given fields: loginDTO
-func (_m *AuthUseCaseInterface) Login(loginDTO dto.LoginDTO) (string, string, *domain.CustomError) {
+func (_m *AuthUseCaseInterface) Login(loginDTO dto.LoginDTO) (*domain.User, string, string, *domain.CustomError) {
 	ret := _m.Called(loginDTO)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Login")
 	}
 
-	var r0 string
+	var r0 *domain.User
 	var r1 string
-	var r2 *domain.CustomError
-	if rf, ok := ret.Get(0).(func(dto.LoginDTO) (string, string, *domain.CustomError)); ok {
+	var r2 string
+	var r3 *domain.CustomError
+	if rf, ok := ret.Get(0).(func(dto.LoginDTO) (*domain.User, string, string, *domain.CustomError)); ok {
 		return rf(loginDTO)
 	}
-	if rf, ok := ret.Get(0).(func(dto.LoginDTO) string); ok {
+	if rf, ok := ret.Get(0).(func(dto.LoginDTO) *domain.User); ok {
 		r0 = rf(loginDTO)
 	} else {
-		r0 = ret.Get(0).(string)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.User)
+		}
 	}
 
 	if rf, ok := ret.Get(1).(func(dto.LoginDTO) string); ok {
@@ -97,15 +100,21 @@ func (_m *AuthUseCaseInterface) Login(loginDTO dto.LoginDTO) (string, string, *d
 		r1 = ret.Get(1).(string)
 	}
 
-	if rf, ok := ret.Get(2).(func(dto.LoginDTO) *domain.CustomError); ok {
+	if rf, ok := ret.Get(2).(func(dto.LoginDTO) string); ok {
 		r2 = rf(loginDTO)
 	} else {
-		if ret.Get(2) != nil {
-			r2 = ret.Get(2).(*domain.CustomError)
+		r2 = ret.Get(2).(string)
+	}
+
+	if rf, ok := ret.Get(3).(func(dto.LoginDTO) *domain.CustomError); ok {
+		r3 = rf(loginDTO)
+	} else {
+		if ret.Get(3) != nil {
+			r3 = ret.Get(3).(*domain.CustomError)
 		}
 	}
 
-	return r0, r1, r2
+	return r0, r1, r2, r3
 }
 
 // RefreshToken provides a mock function with given fields: refreshToken

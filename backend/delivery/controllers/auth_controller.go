@@ -5,6 +5,7 @@ import (
 	"backend/usecases"
 	"backend/usecases/dto"
 	"backend/utils"
+	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -47,13 +48,19 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
-	acToken, refToken, err := ctrl.userUsecase.Login(loginDTO)
+	user, acToken, refToken, err := ctrl.userUsecase.Login(loginDTO)
 	if err != nil {
 		res := utils.ErrorResponse(err.StatusCode, "Login Failed", err.Message)
 		c.JSON(http.StatusUnauthorized, res)
 		return
 	}
-	c.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Login successful", map[string]string{"accessToken": acToken, "refreshToken": refToken}))
+	userJSON, jerr := json.Marshal(user)
+	if jerr != nil {
+		res := utils.ErrorResponse(http.StatusInternalServerError, "Login Failed", "Failed to serialize user data")
+		c.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	c.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Login successful", map[string]string{"user": string(userJSON), "accessToken": acToken, "refreshToken": refToken}))
 }
 func (ctrl *AuthController) RefreshToken(c *gin.Context) {
 	var refreshToken string

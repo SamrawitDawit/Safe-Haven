@@ -113,7 +113,7 @@ func (suite *AuthControllerTestSuite) TestLogin_Success() {
 	acToken := "access-token"
 	refToken := "refresh-token"
 
-	suite.mockUsecase.On("Login", loginDTO).Return(acToken, refToken, nil)
+	suite.mockUsecase.On("Login", loginDTO).Return(&domain.User{}, acToken, refToken, nil)
 	body, _ := json.Marshal(loginDTO)
 	req, _ := http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -150,7 +150,7 @@ func (suite *AuthControllerTestSuite) TestLogin_Failure() {
 		Email:    "test@example.com",
 		Password: "password123",
 	}
-	suite.mockUsecase.On("Login", loginDTO).Return("", "", domain.ErrInvalidCredentials)
+	suite.mockUsecase.On("Login", loginDTO).Return(nil, "", "", domain.ErrInvalidCredentials)
 	body, _ := json.Marshal(loginDTO)
 	req, _ := http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")

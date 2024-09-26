@@ -15,7 +15,7 @@ import (
 
 type AuthUseCaseInterface interface {
 	Register(registerDTO dto.RegisterDTO) (*domain.User, *domain.CustomError)
-	Login(loginDTO dto.LoginDTO) (string, string, *domain.CustomError)
+	Login(loginDTO dto.LoginDTO) (*domain.User, string, string, *domain.CustomError)
 	RefreshToken(refreshToken string) (string, string, *domain.CustomError)
 	ForgotPassword(email string) *domain.CustomError
 	ResetPassword(token string, newPassword string) *domain.CustomError
@@ -125,37 +125,37 @@ func (a *AuthUseCase) generateResetToken(email string) (int64, string, *domain.C
 	return randomNumber, resetToken, nil
 }
 
-func (a *AuthUseCase) Login(loginDTO dto.LoginDTO) (string, string, *domain.CustomError) {
+func (a *AuthUseCase) Login(loginDTO dto.LoginDTO) (*domain.User, string, string, *domain.CustomError) {
 	var user *domain.User
 	var err *domain.CustomError
 	err = a.validateLoginDTO(loginDTO)
 	if err != nil {
-		return "", "", err
+		return nil, "", "", err
 	}
 	if loginDTO.Email != "" {
 		user, err = a.userRepo.GetUserByEmail(loginDTO.Email)
 		if err != nil {
-			return "", "", err
+			return nil, "", "", err
 		}
 		if user != nil && user.GoogleSignin {
-			return "", "", domain.ErrInvalidCredentials
+			return nil, "", "", domain.ErrInvalidCredentials
 		}
 	} else if loginDTO.PhoneNumber != "" {
 		user, err = a.userRepo.GetUserByPhoneNumber(loginDTO.PhoneNumber)
 		if err != nil {
-			return "", "", err
+			return nil, "", "", err
 		}
 	}
 	err = a.pwdService.CheckHash(loginDTO.Password, user.Password)
 	if err != nil {
-		return "", "", err
+		return nil, "", "", err
 	}
 
 	accessToken, refreshToken, err := a.generateAndStoreTokens(user)
 	if err != nil {
-		return "", "", err
+		return nil, "", "", err
 	}
-	return accessToken, refreshToken, nil
+	return user, accessToken, refreshToken, nil
 }
 
 func (a *AuthUseCase) Register(registerDTO dto.RegisterDTO) (*domain.User, *domain.CustomError) {
