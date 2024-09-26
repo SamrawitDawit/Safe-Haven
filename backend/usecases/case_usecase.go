@@ -49,6 +49,7 @@ func (r *CaseUseCase) CreateCase(CaseDto dto.CreateCaseDto) (*domain.Case, *doma
 		Title:             CaseDto.Title,
 		Description:       CaseDto.Description,
 		ImageURL:          CaseDto.ImageURL,
+		VideoURL:          CaseDto.VideoURL,
 		Location:          CaseDto.Location,
 		Status:            "pending",
 		SubmittedAt:       time.Now(),
@@ -74,6 +75,13 @@ func (r *CaseUseCase) CreateCase(CaseDto dto.CreateCaseDto) (*domain.Case, *doma
 			return nil, err
 		}
 		new_Case.ImageURL = encryptedURL
+	}
+	if CaseDto.VideoURL != "" {
+		encryptedURL, err := r.EncrypService.Encrypt(CaseDto.VideoURL)
+		if err != nil {
+			return nil, err
+		}
+		new_Case.VideoURL = encryptedURL
 	}
 	if CaseDto.Location != "" {
 		encryptedLoc, err := r.EncrypService.Encrypt(CaseDto.Location)
@@ -159,6 +167,13 @@ func (r *CaseUseCase) UpdateCase(CaseDto dto.UpdateCaseDto) *domain.CustomError 
 			return err
 		}
 		updatedFields["ImageURL"] = encryptedURL
+	}
+	if CaseDto.VideoURL != "" {
+		encryptedURL, err := r.EncrypService.Encrypt(CaseDto.VideoURL)
+		if err != nil {
+			return err
+		}
+		updatedFields["VideoURL"] = encryptedURL
 	}
 	if CaseDto.Location != "" {
 		encryptedLoc, err := r.EncrypService.Encrypt(CaseDto.Location)

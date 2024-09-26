@@ -7,6 +7,7 @@ type CreateCaseDto struct {
 	Title       string    `json:"title" bson:"title"`
 	Description string    `json:"description" bson:"description"`
 	ImageURL    string    `json:"image_url" bson:"image_url,omitempty"`
+	VideoURL    string    `json:"video_url" bson:"video_url,omitempty"`
 	Location    string    `json:"location" bson:"location,omitempty"`
 }
 
@@ -16,5 +17,6 @@ type UpdateCaseDto struct {
 	Title       string    `json:"title" bson:"title,omitempty"`
 	Description string    `json:"description" bson:"description,omitempty"`
 	ImageURL    string    `json:"image_url" bson:"image_url,omitempty"`
+	VideoURL    string    `json:"video_url" bson:"video_url,omitempty"`
 	Location    string    `json:"location" bson:"location,omitempty"`
 }

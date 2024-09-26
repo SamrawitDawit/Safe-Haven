@@ -12,6 +12,7 @@ type Case struct {
 	Title             string    `json:"title" bson:"title"`
 	Description       string    `json:"description" bson:"description"`
 	ImageURL          string    `json:"image_url" bson:"image_url,omitempty"`
+	VideoURL          string    `json:"video_url" bson:"video_url,omitempty"`
 	Location          string    `json:"location" bson:"location,omitempty"`
 	Status            string    `json:"status" bson:"status"`
 	SubmittedAt       time.Time `json:"submitted_at" bson:"submitted_at"`
