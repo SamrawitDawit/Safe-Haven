@@ -19,7 +19,7 @@ type AuthUseCaseInterface interface {
 	RefreshToken(refreshToken string) (string, string, *domain.CustomError)
 	ForgotPassword(email string) *domain.CustomError
 	ResetPassword(token string, newPassword string) *domain.CustomError
-	HandleGoogleCallback(user *domain.User) (string, string, *domain.CustomError)
+	HandleGoogleCallback(user *domain.User) (*domain.User, string, string, *domain.CustomError)
 }
 
 func NewAuthUseCase(userRepo interfaces.UserRepositoryInterface, jwtservice interfaces.JwtServiceInterface, emailService interfaces.EmailServiceInterface, pwdService interfaces.HashingServiceInterface, encryptionService interfaces.EncryptionServiceInterface) AuthUseCaseInterface {
@@ -379,25 +379,25 @@ func (a *AuthUseCase) ResetPassword(token string, newPassword string) *domain.Cu
 	return nil
 }
 
-func (a *AuthUseCase) HandleGoogleCallback(user *domain.User) (string, string, *domain.CustomError) {
+func (a *AuthUseCase) HandleGoogleCallback(user *domain.User) (*domain.User, string, string, *domain.CustomError) {
 	existingUser, err := a.userRepo.GetUserByEmail(user.Email)
 	if err != nil && err != domain.ErrUserNotFound {
-		return "", "", err
+		return nil, "", "", err
 	}
 	if existingUser != nil {
 		if !user.GoogleSignin {
-			return "", "", domain.ErrUserEmailExists
+			return nil, "", "", domain.ErrUserEmailExists
 		}
 		accessToken, refreshToken, err := a.generateAndStoreTokens(existingUser)
 		if err != nil {
-			return "", "", err
+			return nil, "", "", err
 		}
-		return accessToken, refreshToken, nil
+		return existingUser, accessToken, refreshToken, nil
 
 	}
 	accessToken, refreshToken, err := a.generateAndStoreTokens(user)
 	if err != nil {
-		return "", "", err
+		return nil, "", "", err
 	}
 
 	user.ID = uuid.New()
@@ -410,7 +410,7 @@ func (a *AuthUseCase) HandleGoogleCallback(user *domain.User) (string, string, *
 	user.GoogleSignin = true
 	err = a.userRepo.CreateUser(user)
 	if err != nil {
-		return "", "", err
+		return nil, "", "", err
 	}
-	return accessToken, refreshToken, nil
+	return user, accessToken, refreshToken, nil
 }

@@ -167,14 +167,20 @@ func (ctrl *AuthController) HandleGoogleCallback(c *gin.Context) {
 		userInfo.ImageURL = picture
 	}
 
-	accessToken, refreshToken, cerr := ctrl.userUsecase.HandleGoogleCallback(userInfo)
+	user, accessToken, refreshToken, cerr := ctrl.userUsecase.HandleGoogleCallback(userInfo)
 	if cerr != nil {
 		res := utils.ErrorResponse(cerr.StatusCode, "Google login failed", cerr.Message)
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
-
+	userJSON, jerr := json.Marshal(user)
+	if jerr != nil {
+		res := utils.ErrorResponse(http.StatusInternalServerError, "Login Failed", "Failed to serialize user data")
+		c.JSON(http.StatusInternalServerError, res)
+		return
+	}
 	c.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Google login successful", map[string]string{
+		"user":         string(userJSON),
 		"accessToken":  accessToken,
 		"refreshToken": refreshToken,
 	}))
