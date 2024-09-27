@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"backend/domain"
+	"backend/utils"
 	"net/smtp"
 )
 
@@ -51,6 +52,7 @@ func (s *EmailService) SendResetPasswordEmail(email string, resetToken string) *
 	auth := smtp.PlainAuth("", s.UserName, s.Password, s.Host)
 	err := smtp.SendMail(s.Host+":"+s.Port, auth, from, []string{to}, []byte(message))
 	if err != nil {
+		utils.LogError("Error sending email", err)
 		return domain.ErrEmailSendingFailed
 	}
 	return nil

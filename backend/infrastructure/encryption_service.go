@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"backend/domain"
+	"backend/utils"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -20,6 +21,7 @@ func (e *EncryptionService) Encrypt(plaintext string) (string, *domain.CustomErr
 	// Generate a new AES cipher block using the key
 	block, err := aes.NewCipher(keyBytes)
 	if err != nil {
+		utils.LogError("Failed to create new AES cipher block", err)
 		return "", domain.NewCustomError(err.Error(), 500)
 	}
 
@@ -29,6 +31,7 @@ func (e *EncryptionService) Encrypt(plaintext string) (string, *domain.CustomErr
 	// Generate a random IV and place it at the beginning of the ciphertext slice
 	iv := ciphertext[:aes.BlockSize]
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+		utils.LogError("Failed to generate random IV", err)
 		return "", domain.NewCustomError(err.Error(), 500)
 	}
 
@@ -46,12 +49,14 @@ func (e *EncryptionService) Decrypt(ciphertext string) (string, *domain.CustomEr
 	keyBytes := []byte(e.Key)
 	ciphertextBytes, err := hex.DecodeString(ciphertext)
 	if err != nil {
+		utils.LogError("Failed to decode ciphertext", err)
 		return "", domain.NewCustomError(err.Error(), 500)
 	}
 
 	// Generate a new AES cipher block using the key
 	block, err := aes.NewCipher(keyBytes)
 	if err != nil {
+		utils.LogError("Failed to create new AES cipher block", err)
 		return "", domain.NewCustomError(err.Error(), 500)
 	}
 
