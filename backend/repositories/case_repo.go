@@ -5,6 +5,7 @@ import (
 	"backend/usecases/interfaces"
 	"backend/utils"
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
@@ -33,12 +34,16 @@ func (cr *CaseRepository) CreateCase(Case *domain.Case) *domain.CustomError {
 }
 
 func (r *CaseRepository) UpdateCaseFields(CaseID uuid.UUID, fields map[string]interface{}) *domain.CustomError {
+	fmt.Println("case Id", CaseID)
 	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
 	defer cancel()
-	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": CaseID}, bson.M{"$set": fields})
+	result, err := r.collection.UpdateOne(ctx, bson.M{"_id": CaseID}, bson.M{"$set": fields})
 	if err != nil {
 		utils.LogError("Failed to update Case", err)
 		return domain.ErrCaseUpdateFailed
+	}
+	if result.ModifiedCount == 0 {
+		return domain.ErrCaseNotFound
 	}
 	return nil
 }
@@ -59,7 +64,7 @@ func (r *CaseRepository) GetCasesBySubmitterID(SubmitterID uuid.UUID) ([]*domain
 	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
 	defer cancel()
 	var Cases []*domain.Case
-	cursor, err := r.collection.Find(ctx, bson.M{"SubmitterID": SubmitterID})
+	cursor, err := r.collection.Find(ctx, bson.M{"submitter_id": SubmitterID})
 	if err != nil {
 		utils.LogError("Failed to get Cases", err)
 		return nil, domain.ErrCaseFetchFailed
@@ -98,6 +103,7 @@ func (r *CaseRepository) GetCasesByCounselorID(counselorID uuid.UUID) ([]*domain
 }
 
 func (r *CaseRepository) GetCasesByStatus(status string) ([]*domain.Case, *domain.CustomError) {
+	fmt.Println("status", status)
 	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
 	defer cancel()
 	var Cases []*domain.Case
@@ -115,6 +121,7 @@ func (r *CaseRepository) GetCasesByStatus(status string) ([]*domain.Case, *domai
 		}
 		Cases = append(Cases, Case)
 	}
+	fmt.Println("Cases:", Cases)
 	return Cases, nil
 }
 
@@ -140,10 +147,13 @@ func (r *CaseRepository) GetAllCases() ([]*domain.Case, *domain.CustomError) {
 func (r *CaseRepository) DeleteCase(CaseID uuid.UUID) *domain.CustomError {
 	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
 	defer cancel()
-	_, err := r.collection.DeleteOne(ctx, bson.M{"_id": CaseID})
+	result, err := r.collection.DeleteOne(ctx, bson.M{"_id": CaseID})
 	if err != nil {
 		utils.LogError("Failed to delete Case", err)
 		return domain.ErrCaseUpdateFailed
+	}
+	if result.DeletedCount == 0 {
+		return domain.ErrCaseNotFound
 	}
 	return nil
 }

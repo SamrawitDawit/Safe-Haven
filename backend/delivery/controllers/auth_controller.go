@@ -5,7 +5,6 @@ import (
 	"backend/usecases"
 	"backend/usecases/dto"
 	"backend/utils"
-	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -54,13 +53,7 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, res)
 		return
 	}
-	userJSON, jerr := json.Marshal(user)
-	if jerr != nil {
-		res := utils.ErrorResponse(http.StatusInternalServerError, "Login Failed", "Failed to serialize user data")
-		c.JSON(http.StatusInternalServerError, res)
-		return
-	}
-	c.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Login successful", map[string]string{"user": string(userJSON), "accessToken": acToken, "refreshToken": refToken}))
+	c.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Login successful", map[string]interface{}{"user": user, "accessToken": acToken, "refreshToken": refToken}))
 }
 func (ctrl *AuthController) RefreshToken(c *gin.Context) {
 	var refreshToken string
@@ -173,14 +166,8 @@ func (ctrl *AuthController) HandleGoogleCallback(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
-	userJSON, jerr := json.Marshal(user)
-	if jerr != nil {
-		res := utils.ErrorResponse(http.StatusInternalServerError, "Login Failed", "Failed to serialize user data")
-		c.JSON(http.StatusInternalServerError, res)
-		return
-	}
-	c.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Google login successful", map[string]string{
-		"user":         string(userJSON),
+	c.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Google login successful", map[string]interface{}{
+		"user":         user,
 		"accessToken":  accessToken,
 		"refreshToken": refreshToken,
 	}))

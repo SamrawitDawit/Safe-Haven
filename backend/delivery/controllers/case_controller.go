@@ -21,7 +21,7 @@ func NewCaseController(CaseUsecase usecases.CaseUseCaseInterface) *CaseControlle
 }
 
 func (ctrl *CaseController) CreateCase(c *gin.Context) {
-	var createCaseDto dto.CreateCaseDto
+	var createCaseDto dto.CaseDto
 	if err := c.BindJSON(&createCaseDto); err != nil {
 		res := utils.ErrorResponse(http.StatusBadRequest, "Invalid request", err.Error())
 		c.JSON(http.StatusBadRequest, res)
@@ -37,13 +37,19 @@ func (ctrl *CaseController) CreateCase(c *gin.Context) {
 }
 
 func (ctrl *CaseController) UpdateCase(c *gin.Context) {
-	var updateCaseDto dto.UpdateCaseDto
+	caseID, err := uuid.Parse(c.Param("case_id"))
+	if err != nil {
+		res := utils.ErrorResponse(http.StatusBadRequest, "Invalid request", err.Error())
+		c.JSON(http.StatusBadRequest, res)
+		return
+	}
+	var updateCaseDto dto.CaseDto
 	if err := c.BindJSON(&updateCaseDto); err != nil {
 		res := utils.ErrorResponse(http.StatusBadRequest, "Invalid request", err.Error())
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
-	cerr := ctrl.CaseUsecase.UpdateCase(updateCaseDto)
+	cerr := ctrl.CaseUsecase.UpdateCase(caseID, updateCaseDto)
 	if cerr != nil {
 		res := utils.ErrorResponse(cerr.StatusCode, "Case Update Failed", cerr.Message)
 		c.JSON(cerr.StatusCode, res)
@@ -52,7 +58,7 @@ func (ctrl *CaseController) UpdateCase(c *gin.Context) {
 	c.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Case Update successful", nil))
 }
 func (ctrl *CaseController) GetCaseByID(c *gin.Context) {
-	CaseID, err := uuid.Parse(c.Param("Case_id"))
+	CaseID, err := uuid.Parse(c.Param("case_id"))
 	if err != nil {
 		res := utils.ErrorResponse(http.StatusBadRequest, "Invalid request", err.Error())
 		c.JSON(http.StatusBadRequest, res)
@@ -124,7 +130,7 @@ func (ctrl *CaseController) GetAllCases(c *gin.Context) {
 }
 
 func (ctrl *CaseController) DeleteCase(c *gin.Context) {
-	CaseID, err := uuid.Parse(c.Param("Case_id"))
+	CaseID, err := uuid.Parse(c.Param("case_id"))
 	if err != nil {
 		res := utils.ErrorResponse(http.StatusBadRequest, "Invalid request", err.Error())
 		c.JSON(http.StatusBadRequest, res)

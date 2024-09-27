@@ -4,14 +4,15 @@ import (
 	"backend/domain"
 	"backend/usecases/dto"
 	"backend/usecases/interfaces"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 )
 
 type CaseUseCaseInterface interface {
-	CreateCase(CaseDto dto.CreateCaseDto) (*domain.Case, *domain.CustomError)
-	UpdateCase(CaseDto dto.UpdateCaseDto) *domain.CustomError
+	CreateCase(CaseDto dto.CaseDto) (*domain.Case, *domain.CustomError)
+	UpdateCase(caseID uuid.UUID, CaseDto dto.CaseDto) *domain.CustomError
 	GetCaseByID(CaseID uuid.UUID) (*domain.Case, *domain.CustomError)
 	GetAllCases() ([]*domain.Case, *domain.CustomError)
 	GetCasesBySubmitterID(SubmitterID uuid.UUID) ([]*domain.Case, *domain.CustomError)
@@ -31,14 +32,55 @@ func NewCaseUseCase(CaseRepo interfaces.CaseRepositoryInterface, encryptService 
 	}
 }
 
-func validateCaseDto(CaseDto dto.CreateCaseDto) *domain.CustomError {
-	if CaseDto.Description == "" || CaseDto.ImageURL == "" {
+func validateCaseDto(CaseDto dto.CaseDto) *domain.CustomError {
+	if CaseDto.Description == "" && CaseDto.ImageURL == "" {
 		return domain.ErrIncompleteCaseInformation
 	}
 	return nil
 }
 
-func (r *CaseUseCase) CreateCase(CaseDto dto.CreateCaseDto) (*domain.Case, *domain.CustomError) {
+func (r *CaseUseCase) decrypt(Cases []*domain.Case) ([]*domain.Case, *domain.CustomError) {
+	for _, Case := range Cases {
+		if Case.Title != "" {
+			encryptedTitle, err := r.EncrypService.Decrypt(Case.Title)
+			if err != nil {
+				return nil, err
+			}
+			Case.Title = encryptedTitle
+		}
+		if Case.Description != "" {
+			encryptedDesc, err := r.EncrypService.Decrypt(Case.Description)
+			if err != nil {
+				return nil, err
+			}
+			Case.Description = encryptedDesc
+		}
+		if Case.ImageURL != "" {
+			encryptedURL, err := r.EncrypService.Decrypt(Case.ImageURL)
+			if err != nil {
+				return nil, err
+			}
+			Case.ImageURL = encryptedURL
+		}
+		if Case.VideoURL != "" {
+			encryptedURL, err := r.EncrypService.Decrypt(Case.VideoURL)
+			if err != nil {
+				return nil, err
+			}
+			Case.VideoURL = encryptedURL
+		}
+		if Case.Location != "" {
+			encryptedLoc, err := r.EncrypService.Decrypt(Case.Location)
+			if err != nil {
+				return nil, err
+			}
+			Case.Location = encryptedLoc
+		}
+	}
+	return Cases, nil
+}
+
+func (r *CaseUseCase) CreateCase(CaseDto dto.CaseDto) (*domain.Case, *domain.CustomError) {
 	err := validateCaseDto(CaseDto)
 	if err != nil {
 		return nil, err
@@ -110,7 +152,11 @@ func (r *CaseUseCase) GetAllCases() ([]*domain.Case, *domain.CustomError) {
 	if err != nil {
 		return nil, err
 	}
-	return Cases, nil
+	decryptedCases, err := r.decrypt(Cases)
+	if err != nil {
+		return nil, err
+	}
+	return decryptedCases, nil
 }
 
 func (r *CaseUseCase) GetCaseByID(CaseID uuid.UUID) (*domain.Case, *domain.CustomError) {
@@ -118,7 +164,11 @@ func (r *CaseUseCase) GetCaseByID(CaseID uuid.UUID) (*domain.Case, *domain.Custo
 	if err != nil {
 		return nil, err
 	}
-	return Case, nil
+	decryptedCases, err := r.decrypt([]*domain.Case{Case})
+	if err != nil {
+		return nil, err
+	}
+	return decryptedCases[0], nil
 }
 
 func (r *CaseUseCase) GetCasesByCounselorID(counselorID uuid.UUID) ([]*domain.Case, *domain.CustomError) {
@@ -126,7 +176,11 @@ func (r *CaseUseCase) GetCasesByCounselorID(counselorID uuid.UUID) ([]*domain.Ca
 	if err != nil {
 		return nil, err
 	}
-	return Case, nil
+	decryptedCases, err := r.decrypt(Case)
+	if err != nil {
+		return nil, err
+	}
+	return decryptedCases, nil
 }
 
 func (r *CaseUseCase) GetCasesBySubmitterID(SubmitterID uuid.UUID) ([]*domain.Case, *domain.CustomError) {
@@ -134,7 +188,11 @@ func (r *CaseUseCase) GetCasesBySubmitterID(SubmitterID uuid.UUID) ([]*domain.Ca
 	if err != nil {
 		return nil, err
 	}
-	return Case, nil
+	decryptedCases, err := r.decrypt(Case)
+	if err != nil {
+		return nil, err
+	}
+	return decryptedCases, nil
 }
 
 func (r *CaseUseCase) GetCasesByStatus(status string) ([]*domain.Case, *domain.CustomError) {
@@ -142,47 +200,52 @@ func (r *CaseUseCase) GetCasesByStatus(status string) ([]*domain.Case, *domain.C
 	if err != nil {
 		return nil, err
 	}
-	return Case, nil
+	decryptedCases, err := r.decrypt(Case)
+	if err != nil {
+		return nil, err
+	}
+	return decryptedCases, nil
 }
 
-func (r *CaseUseCase) UpdateCase(CaseDto dto.UpdateCaseDto) *domain.CustomError {
+func (r *CaseUseCase) UpdateCase(caseID uuid.UUID, CaseDto dto.CaseDto) *domain.CustomError {
+	fmt.Println("case Id", caseID)
 	updatedFields := map[string]interface{}{}
 	if CaseDto.Title != "" {
 		encryptedTitle, err := r.EncrypService.Encrypt(CaseDto.Title)
 		if err != nil {
 			return err
 		}
-		updatedFields["Title"] = encryptedTitle
+		updatedFields["title"] = encryptedTitle
 	}
 	if CaseDto.Description != "" {
 		encryptedDesc, err := r.EncrypService.Encrypt(CaseDto.Description)
 		if err != nil {
 			return err
 		}
-		updatedFields["Description"] = encryptedDesc
+		updatedFields["description"] = encryptedDesc
 	}
 	if CaseDto.ImageURL != "" {
 		encryptedURL, err := r.EncrypService.Encrypt(CaseDto.ImageURL)
 		if err != nil {
 			return err
 		}
-		updatedFields["ImageURL"] = encryptedURL
+		updatedFields["image_url"] = encryptedURL
 	}
 	if CaseDto.VideoURL != "" {
 		encryptedURL, err := r.EncrypService.Encrypt(CaseDto.VideoURL)
 		if err != nil {
 			return err
 		}
-		updatedFields["VideoURL"] = encryptedURL
+		updatedFields["video_url"] = encryptedURL
 	}
 	if CaseDto.Location != "" {
 		encryptedLoc, err := r.EncrypService.Encrypt(CaseDto.Location)
 		if err != nil {
 			return err
 		}
-		updatedFields["Location"] = encryptedLoc
+		updatedFields["location"] = encryptedLoc
 	}
-	err := r.CaseRepo.UpdateCaseFields(CaseDto.ID, updatedFields)
+	err := r.CaseRepo.UpdateCaseFields(caseID, updatedFields)
 	if err != nil {
 		return err
 	}
