@@ -27,6 +27,7 @@ func NewAuthController(userUsecase usecases.AuthUseCaseInterface, googleConfig *
 func (ctrl *AuthController) Register(c *gin.Context) {
 	var registerDTO dto.RegisterDTO
 	if err := c.BindJSON(&registerDTO); err != nil {
+		utils.LogError("Error binding request", err)
 		res := utils.ErrorResponse(http.StatusBadRequest, "Invalid request", err.Error())
 		c.JSON(http.StatusBadRequest, res)
 		return
@@ -43,6 +44,7 @@ func (ctrl *AuthController) Register(c *gin.Context) {
 func (ctrl *AuthController) Login(c *gin.Context) {
 	var loginDTO dto.LoginDTO
 	if err := c.BindJSON(&loginDTO); err != nil {
+		utils.LogError("Error binding request", err)
 		res := utils.ErrorResponse(http.StatusBadRequest, "Invalid request", err.Error())
 		c.JSON(http.StatusBadRequest, res)
 		return
@@ -58,6 +60,7 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 func (ctrl *AuthController) RefreshToken(c *gin.Context) {
 	var refreshToken string
 	if err := c.BindJSON(&refreshToken); err != nil {
+		utils.LogError("Error binding request", err)
 		res := utils.ErrorResponse(http.StatusBadRequest, "Invalid request", err.Error())
 		c.JSON(http.StatusBadRequest, res)
 		return
@@ -75,6 +78,7 @@ func (ctrl *AuthController) RefreshToken(c *gin.Context) {
 func (ctrl *AuthController) ForgotPassword(c *gin.Context) {
 	var email string
 	if err := c.BindJSON(&email); err != nil {
+		utils.LogError("Error binding request", err)
 		res := utils.ErrorResponse(http.StatusBadRequest, "Invalid request", err.Error())
 		c.JSON(http.StatusBadRequest, res)
 		return
@@ -92,6 +96,7 @@ func (ctrl *AuthController) ForgotPassword(c *gin.Context) {
 func (ctrl *AuthController) ResetPassword(c *gin.Context) {
 	var ResetPassworddto dto.ResetPasswordRequestDTO
 	if err := c.BindJSON(&ResetPassworddto); err != nil {
+		utils.LogError("Error binding request", err)
 		res := utils.ErrorResponse(http.StatusBadRequest, "Invalid request", err.Error())
 		c.JSON(http.StatusBadRequest, res)
 		return
@@ -112,6 +117,7 @@ func (ctrl *AuthController) HandleGoogleCallback(c *gin.Context) {
 	// Retrieve the state from the cookie
 	storedState, err := c.Cookie("oauthstate")
 	if err != nil {
+		utils.LogError("Invalid state token", err)
 		res := utils.ErrorResponse(http.StatusBadRequest, "State token missing or expired", "Failed to retrieve state token")
 		c.JSON(http.StatusBadRequest, res)
 		return
@@ -128,6 +134,7 @@ func (ctrl *AuthController) HandleGoogleCallback(c *gin.Context) {
 	code := c.Query("code")
 	token, err := ctrl.googleConfig.Exchange(c, code)
 	if err != nil {
+		utils.LogError("Google Exchange failed", err)
 		res := utils.ErrorResponse(http.StatusInternalServerError, "Google login failed", err.Error())
 		c.JSON(http.StatusInternalServerError, res)
 		return
@@ -142,6 +149,7 @@ func (ctrl *AuthController) HandleGoogleCallback(c *gin.Context) {
 
 	payload, err := idtoken.Validate(c, idToken, ctrl.googleConfig.ClientID)
 	if err != nil {
+		utils.LogError("Error token validation", err)
 		res := utils.ErrorResponse(http.StatusInternalServerError, "Google login failed", err.Error())
 		c.JSON(http.StatusInternalServerError, res)
 		return

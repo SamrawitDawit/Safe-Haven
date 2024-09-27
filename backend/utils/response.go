@@ -1,6 +1,8 @@
 package utils
 
-import "log"
+import (
+	"log"
+)
 
 type Response struct {
 	Status  int         `json:"status"`

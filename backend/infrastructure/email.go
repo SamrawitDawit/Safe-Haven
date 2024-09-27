@@ -14,7 +14,7 @@ type EmailService struct {
 }
 
 func (s *EmailService) BuildResetPasswordEmail(resetToken string) string {
-	resetLink := "http://localhost:8080/reset-password?token=" + resetToken
+	resetLink := "http://localhost:3000/auth/reset-password?token=" + resetToken
 
 	return `
 		<!DOCTYPE html>
