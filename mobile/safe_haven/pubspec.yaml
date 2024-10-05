@@ -51,6 +51,8 @@ dependencies:
   google_fonts: ^4.0.3
   flutter_svg: ^1.0.0
   google_sign_in: ^5.4.1    
+  url_launcher: ^6.3.0
+  flutter_appauth: ^7.0.0
 
 dev_dependencies:
   flutter_test:

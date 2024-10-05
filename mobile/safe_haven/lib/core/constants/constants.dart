@@ -1,5 +1,5 @@
 class Urls {
-  static const String authUrl = 'http://192.168.1.10:8080/auth';
+  static const String authUrl = 'https://3613-196-189-114-138.ngrok-free.app/auth';
 }
 
 class ErrorMessages {

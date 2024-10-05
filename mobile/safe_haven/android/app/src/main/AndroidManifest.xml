@@ -3,7 +3,7 @@ package="com.example.safe_haven">
     
     <application
         android:label="safe_haven"
-        android:name="${applicationName}"
+        android:name="android.app.Application"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
