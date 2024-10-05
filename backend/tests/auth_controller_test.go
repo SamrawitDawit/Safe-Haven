@@ -31,8 +31,7 @@ type AuthControllerTestSuite struct {
 func (suite *AuthControllerTestSuite) SetupTest() {
 	suite.mockUsecase = new(mocks.AuthUseCaseInterface)
 	suite.recorder = httptest.NewRecorder()
-	suite.googleConfig = &oauth2.Config{} // Mock or setup a minimal OAuth2 config if needed
-	suite.controller = controllers.NewAuthController(suite.mockUsecase, suite.googleConfig)
+	suite.controller = controllers.NewAuthController(suite.mockUsecase)
 
 	// Set Gin mode to TestMode to avoid debug output during tests
 	gin.SetMode(gin.TestMode)
