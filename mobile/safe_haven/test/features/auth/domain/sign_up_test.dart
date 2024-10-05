@@ -16,7 +16,7 @@ void main() {
         SignUpUsecase(authenticationRepository: mockAuthenticationRepository);
   });
 
-  final testSignUpEntity = SignUpEntity(userType: 'normal', password: 'pass', fullName: 'bereket', phoneNumber: '987', language: 'language', category: 'cat');
+  final testSignUpEntity = SignUpEntity( password: 'pass', fullName: 'bereket', phoneNumber: '987', language: 'language', category: 'cat');
   test('tests that correct url is called to sign up', () async {
     //arrange
     when(mockAuthenticationRepository.signUp(testSignUpEntity))

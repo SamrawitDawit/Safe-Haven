@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safe_haven/features/auth/domain/entities/sign_up_entity.dart';
 import 'package:safe_haven/features/auth/presentation/bloc/bloc/auth_bloc_bloc.dart';
 import 'package:safe_haven/features/auth/presentation/widgets/custom_button.dart';
+import 'package:safe_haven/features/auth/presentation/widgets/phone_form.dart';
 
 class SignUpscreen extends StatefulWidget {
   const SignUpscreen({super.key});
@@ -13,11 +14,20 @@ class SignUpscreen extends StatefulWidget {
 
 class _SignUpScreen extends State<SignUpscreen> {
   TextEditingController fullName = TextEditingController();
+  TextEditingController phone = TextEditingController();
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
   TextEditingController ConfirmPassword = TextEditingController();
-  TextEditingController language = TextEditingController();
-  TextEditingController category = TextEditingController();
+  String selectedLanguage = 'English';
+  String selectedCategory = 'Victim';
+  bool isPhoneSignUp = false;
+
+  void toggleForm() {
+    print('changed');
+    setState(() {
+      isPhoneSignUp = !isPhoneSignUp;
+    });
+  }
 
   final _formKey = GlobalKey<FormState>();
   @override
@@ -50,24 +60,53 @@ class _SignUpScreen extends State<SignUpscreen> {
         ),
         body: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(30, 30, 30, 10),
+            padding: const EdgeInsets.fromLTRB(30, 0, 30, 10),
             child: Column(children: [
-              CustomButton2(
-                  text: 'Sign up with Phone Number',
-                  onPressed: () {
-                    // print(fullName);
-                    Navigator.pushNamed(context, '/signupphone');
-                  },
-                  bC: 0xFF169C89,
-                  col: 0xFFFFFFFF),
+              // CustomButton2(
+              //     text: 'Sign up with Phone Number',
+              //     onPressed: () {
+              //       // print(fullName);
+              //       Navigator.pushNamed(context, '/signupphone');
+              //     },
+              //     bC: 0xFF169C89,
+              //     col: 0xFFFFFFFF),
               Form(
                 key: _formKey,
-                child: CustomForm(
-                  fullName2: fullName,
-                  email2: email,
-                  password2: password,
-                  confirmPassword2: ConfirmPassword,
-                ),
+                child: isPhoneSignUp
+                    ? CustomPhoneForm2(
+                        ontoggleFirst: toggleForm,
+                        fullName2: fullName,
+                        password2: password,
+                        confirmPassword2: ConfirmPassword,
+                        phoneNumber2: phone,
+                        onLanguageChanged: (language) {
+                          setState(() {
+                            selectedLanguage = language;
+                          });
+                        },
+                        onCategoryChanged: (category) {
+                          setState(() {
+                            selectedLanguage = category;
+                          });
+                        },
+                      )
+                    : CustomForm(
+                        fullName2: fullName,
+                        email2: email,
+                        password2: password,
+                        confirmPassword2: ConfirmPassword,
+                        onLanguageChanged: (language) {
+                          setState(() {
+                            selectedLanguage = language;
+                          });
+                        },
+                        onCategoryChanged: (category) {
+                          setState(() {
+                            selectedLanguage = category;
+                          });
+                        },
+                        ontoggleFirst: toggleForm,
+                      ),
               ),
               BlocBuilder<AuthBlocBloc, AuthBlocState>(
                   builder: (context, state) {
@@ -77,14 +116,21 @@ class _SignUpScreen extends State<SignUpscreen> {
                       // print(fullName);
 
                       if (_formKey.currentState!.validate()) {
-                        context.read<AuthBlocBloc>().add(RegisterEvent(
-                            registrationEntity: SignUpEntity(
-                                language: 'language',
-                                category: 'category',
-                                userType: 'normal',
-                                fullName: fullName.text,
-                                password: password.text,
-                                email: email.text)));
+                        isPhoneSignUp
+                            ? context.read<AuthBlocBloc>().add(RegisterEvent(
+                                registrationEntity: SignUpEntity(
+                                    language: selectedLanguage,
+                                    category: selectedCategory,
+                                    fullName: fullName.text,
+                                    password: password.text,
+                                    phoneNumber: phone.text)))
+                            : context.read<AuthBlocBloc>().add(RegisterEvent(
+                                registrationEntity: SignUpEntity(
+                                    language: selectedLanguage,
+                                    category: selectedCategory,
+                                    fullName: fullName.text,
+                                    password: password.text,
+                                    email: email.text)));
                       }
                     },
                     bC: 0xFFFFFFFF,
@@ -121,12 +167,18 @@ class CustomForm extends StatefulWidget {
   final TextEditingController confirmPassword2;
   final TextEditingController email2;
 
+  final ValueChanged<String> onLanguageChanged;
+  final ValueChanged<String> onCategoryChanged;
+  final VoidCallback ontoggleFirst;
   const CustomForm({
     super.key,
     required this.fullName2,
     required this.password2,
     required this.confirmPassword2,
     required this.email2,
+    required this.onLanguageChanged,
+    required this.onCategoryChanged,
+    required this.ontoggleFirst,
   });
 
   @override
@@ -177,7 +229,7 @@ class _CustomFormState extends State<CustomForm> {
                   )),
             ),
             const SizedBox(
-              height: 15,
+              height: 5,
             ),
             TextFormField(
               validator: (value) {
@@ -211,8 +263,22 @@ class _CustomFormState extends State<CustomForm> {
               ),
             ),
 
-            const SizedBox(height: 20),
-
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: RichText(
+                  text: TextSpan(
+                      text: ' Or Sign up with phone',
+                      style: const TextStyle(color: Color(0xFF169C89)),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          print('pressed got to phone');
+                          widget.ontoggleFirst();
+                        })),
+            ),
+            SizedBox(
+              height: 5,
+            ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Align(
@@ -238,8 +304,9 @@ class _CustomFormState extends State<CustomForm> {
                   )),
             ),
             const SizedBox(
-              height: 15,
+              height: 5,
             ),
+
             TextFormField(
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -273,7 +340,7 @@ class _CustomFormState extends State<CustomForm> {
                 fillColor: Color.fromARGB(255, 247, 245, 245),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Align(
@@ -299,7 +366,7 @@ class _CustomFormState extends State<CustomForm> {
                   )),
             ),
             const SizedBox(
-              height: 15,
+              height: 5,
             ),
 
             // Password Field
@@ -377,7 +444,7 @@ class _CustomFormState extends State<CustomForm> {
               ),
               // to hide password input
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
 
             // Confirm Password Field
             const Padding(
@@ -405,7 +472,7 @@ class _CustomFormState extends State<CustomForm> {
                   )),
             ),
             const SizedBox(
-              height: 15,
+              height: 5,
             ),
             TextFormField(
               validator: (value) {
@@ -463,7 +530,7 @@ class _CustomFormState extends State<CustomForm> {
                 fillColor: const Color.fromARGB(255, 247, 245, 245),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Align(
@@ -489,7 +556,7 @@ class _CustomFormState extends State<CustomForm> {
                   )),
             ),
             const SizedBox(
-              height: 15,
+              height: 5,
             ),
 
             // Language Dropdown
@@ -525,9 +592,10 @@ class _CustomFormState extends State<CustomForm> {
                 setState(() {
                   _selectedLanguage = value!; // Update selected language
                 });
+                widget.onLanguageChanged(_selectedLanguage);
               },
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Align(
@@ -553,7 +621,7 @@ class _CustomFormState extends State<CustomForm> {
                   )),
             ),
             const SizedBox(
-              height: 15,
+              height: 5,
             ),
 
             // Category Dropdown
@@ -589,10 +657,8 @@ class _CustomFormState extends State<CustomForm> {
                 setState(() {
                   _selectedCategory = value!; // Update selected category
                 });
+                widget.onCategoryChanged(_selectedCategory);
               },
-            ),
-            const SizedBox(
-              height: 10,
             ),
           ],
         ),

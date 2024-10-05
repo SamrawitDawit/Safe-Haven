@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -41,12 +40,6 @@ class _ForgotPasswordScreen extends State<ForgotPasswordscreen> {
                   Navigator.pop(context);
                 },
                 icon: const Icon(Icons.arrow_back_outlined)),
-            title: const Center(
-              child: Text(
-                'forgotPassword',
-                style: TextStyle(color: Color(0xFF169C89)),
-              ),
-            ),
           ),
           body: SingleChildScrollView(
             child: Padding(
@@ -71,25 +64,6 @@ class _ForgotPasswordScreen extends State<ForgotPasswordscreen> {
                   }),
                   const SizedBox(
                     height: 20,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Already Have an account? ',
-                      ),
-                      RichText(
-                          text: TextSpan(
-                              text: 'reset password page for now',
-                              style: const TextStyle(
-                                color: Color(0xFF169C89),
-                              ),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () {
-                                  Navigator.pushNamed(
-                                      context, '/resetpassword');
-                                })),
-                    ],
                   ),
                 ]),
               ),
@@ -151,7 +125,7 @@ class _CustomforgotPasswordFormState extends State<CustomforgotPasswordForm> {
         ),
 
         const Padding(
-          padding:  EdgeInsets.symmetric(horizontal: 10),
+          padding: EdgeInsets.symmetric(horizontal: 10),
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(

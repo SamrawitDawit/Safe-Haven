@@ -42,12 +42,6 @@ class _LogInScreen extends State<LogInscreen> {
                   Navigator.pop(context);
                 },
                 icon: const Icon(Icons.arrow_back)),
-            title: const Center(
-              child: Text(
-                'Login',
-                style: TextStyle(color: Color(0xFF169C89)),
-              ),
-            ),
           ),
           body: SingleChildScrollView(
             child: Padding(
@@ -77,26 +71,8 @@ class _LogInScreen extends State<LogInscreen> {
                     height: 20,
                   ),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Row(
-                        children: [
-                          const Text('Don\'t have an account?'),
-                          const SizedBox(
-                            width: 3,
-                          ),
-                          RichText(
-                              text: TextSpan(
-                                  text: 'Sign up',
-                                  style: const TextStyle(
-                                    color: Color(0xFF169C89),
-                                  ),
-                                  recognizer: TapGestureRecognizer()
-                                    ..onTap = () {
-                                      Navigator.pushNamed(context, '/signup');
-                                    }))
-                        ],
-                      ),
                       RichText(
                           text: TextSpan(
                               text: 'Forgot password?',
@@ -111,26 +87,94 @@ class _LogInScreen extends State<LogInscreen> {
                     ],
                   ),
                   const SizedBox(
-                    height: 10,
+                    height: 30,
                   ),
-                  const Text(
-                    'Or connect with google',
-                    style: TextStyle(
-                      color: Colors.grey,
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Container(
+                      height: 1, // Line height
+                      width: 100, // Full width
+                      color: Colors.black, // Line color
                     ),
-                  ),
+                    SizedBox(
+                      width: 5,
+                    ),
+                    Text(
+                      'Or',
+                      style: TextStyle(
+                        color: Colors.grey,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 5,
+                    ),
+                    Container(
+                      height: 1, // Line height
+                      width: 100, // Full width
+                      color: Colors.black, // Line color
+                    ),
+                  ]),
                   const SizedBox(
-                    height: 3,
+                    height: 30,
                   ),
-                  CustomButton3(
-                      widget: SvgPicture.asset('assets/icons/google_logo.svg'),
-                      onPressed: () {
-                        context
-                            .read<AuthBlocBloc>()
-                            .add(const GoogleSignInEvent());
-                      },
-                      bC: 0xFF169C89,
-                      col: 0xFFFFFFFF)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          context
+                              .read<AuthBlocBloc>()
+                              .add(const GoogleSignInEvent());
+                        },
+                        style: TextButton.styleFrom(
+                          padding:
+                              EdgeInsets.all(10), // Padding inside the button
+                          side: BorderSide(
+                            color: Colors.black, // Border color
+                            width: 1.0, // Border thickness
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(8.0), // Rounded corners
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize
+                              .min, // Makes the button just as wide as the content
+                          children: [
+                            // Google Icon (SVG)
+                            SvgPicture.asset(
+                              'assets/icons/google_logo.svg', // Path to your SVG asset
+                              height: 24.0, // Set the desired height
+                              width: 24.0, // Set the desired width
+                            ),
+                            SizedBox(
+                                width:
+                                    20.0), // Space between the icon and the text
+
+                            // Button Text
+                            Text(
+                              'Connect with Google',
+                              style: TextStyle(
+                                fontSize: 12, // Font size of the text
+                                color: Colors
+                                    .grey, // Text color (adjust to your needs)
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  // CustomButton3(
+                  //     widget: SvgPicture.asset('assets/icons/google_logo.svg'),
+                  //     onPressed: () {
+                  //       context
+                  //           .read<AuthBlocBloc>()
+                  //           .add(const GoogleSignInEvent());
+                  //     },
+                  //     bC: 0xFF169C89,
+                  //     col: 0xFFFFFFFF)
                 ]),
               ),
             ),

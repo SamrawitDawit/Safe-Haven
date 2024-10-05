@@ -32,7 +32,6 @@ void main() {
       fullName: 'name',
         language: 'lang',
         category: 'cat',
-        userType: 'normal',
         password: 'pass',
         phoneNumber: '123');
 

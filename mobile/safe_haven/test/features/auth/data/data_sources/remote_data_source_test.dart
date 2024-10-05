@@ -24,7 +24,6 @@ void main() {
       LogInModel(userType: 'normal', email: 'email', password: 'password');
   final tRegisterModel = SignUpModel(
     fullName: 'name',
-      userType: 'normal',
       category: 'cat',
       language: 'lang',
       password: 'password',

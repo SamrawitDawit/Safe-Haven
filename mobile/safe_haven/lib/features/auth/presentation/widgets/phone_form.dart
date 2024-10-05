@@ -1,128 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safe_haven/features/auth/domain/entities/sign_up_entity.dart';
-import 'package:safe_haven/features/auth/presentation/bloc/bloc/auth_bloc_bloc.dart';
-import 'package:safe_haven/features/auth/presentation/widgets/custom_button.dart';
 
-class SignUpPhonescreen extends StatefulWidget {
-  const SignUpPhonescreen({super.key});
-  @override
-  State<SignUpPhonescreen> createState() => _SignUpPhoneScreen();
-}
-
-class _SignUpPhoneScreen extends State<SignUpPhonescreen> {
-  TextEditingController fullName = TextEditingController();
-  TextEditingController phoneNumber = TextEditingController();
-  TextEditingController password = TextEditingController();
-  TextEditingController ConfirmPassword = TextEditingController();
-  TextEditingController language = TextEditingController();
-  TextEditingController category = TextEditingController();
-
-  String selectedLanguage = 'English';
-  String selectedCategory = 'General';
-
-  final _formKey = GlobalKey<FormState>();
-  @override
-  Widget build(BuildContext context) {
-    return BlocListener<AuthBlocBloc, AuthBlocState>(
-      listener: (context, state) {
-        if (state is AuthRegisterSuccess) {
-          if (!context.mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: const Text('Account created successfully (in the ui)'),
-            backgroundColor: Theme.of(context).primaryColor,
-          ));
-          Navigator.pushNamed(context, '/login');
-        } else if (state is AuthError) {
-          if (!context.mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(state.message),
-            backgroundColor: Colors.red,
-          ));
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Center(
-            child: Text(
-              'Register',
-              style: TextStyle(color: Color(0xFF169C89), fontSize: 30),
-            ),
-          ),
-        ),
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(30, 30, 30, 10),
-            child: Column(children: [
-              CustomButton2(
-                  text: 'Sign up with email',
-                  onPressed: () {
-                    // print(fullName);
-                    Navigator.pushNamed(context, '/signup');
-                  },
-                  bC: 0xFF169C89,
-                  col: 0xFFFFFFFF),
-              Form(
-                key: _formKey,
-                child: CustomPhoneForm(
-                  fullName2: fullName,
-                  phoneNumber2: phoneNumber,
-                  password2: password,
-                  confirmPassword2: ConfirmPassword,
-                  onLanguageChanged: (language) {
-                    selectedLanguage = language;
-                  },
-                  onCategoryChanged: (category) {
-                    selectedCategory = category;
-                  },
-                ),
-              ),
-              BlocBuilder<AuthBlocBloc, AuthBlocState>(
-                  builder: (context, state) {
-                return CustomButton(
-                    text: 'Register',
-                    onPressed: () {
-                      // print(fullName);
-                      if (_formKey.currentState!.validate()) {
-                        context.read<AuthBlocBloc>().add(RegisterEvent(
-                            registrationEntity: SignUpEntity(
-                                language: 'language',
-                                category: 'category',
-                                fullName: fullName.text,
-                                password: password.text,
-                                phoneNumber: phoneNumber.text)));
-                      }
-                    },
-                    bC: 0xFFFFFFFF,
-                    col: 0xFF169C89);
-              }),
-              const SizedBox(
-                height: 20,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Have an account? '),
-                  RichText(
-                      text: TextSpan(
-                          text: 'Log In',
-                          style: const TextStyle(color: Color(0xFF169C89)),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              Navigator.pushNamed(context, '/login');
-                            })),
-                ],
-              ),
-            ]),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class CustomPhoneForm extends StatefulWidget {
+class CustomPhoneForm2 extends StatefulWidget {
   final TextEditingController fullName2;
   final TextEditingController password2;
   final TextEditingController confirmPassword2;
@@ -130,7 +9,8 @@ class CustomPhoneForm extends StatefulWidget {
 
   final ValueChanged<String> onLanguageChanged;
   final ValueChanged<String> onCategoryChanged;
-  const CustomPhoneForm({
+  final VoidCallback ontoggleFirst;
+  const CustomPhoneForm2({
     super.key,
     required this.fullName2,
     required this.password2,
@@ -138,13 +18,14 @@ class CustomPhoneForm extends StatefulWidget {
     required this.phoneNumber2,
     required this.onLanguageChanged,
     required this.onCategoryChanged,
+    required this.ontoggleFirst,
   });
 
   @override
-  State<CustomPhoneForm> createState() => _CustomPhoneFormState();
+  State<CustomPhoneForm2> createState() => _CustomPhoneForm2State();
 }
 
-class _CustomPhoneFormState extends State<CustomPhoneForm> {
+class _CustomPhoneForm2State extends State<CustomPhoneForm2> {
   // State variables to track the dropdown values
   String _selectedLanguage = 'English'; // default value for language
   String _selectedCategory = 'Victim'; // default value for category
@@ -188,7 +69,7 @@ class _CustomPhoneFormState extends State<CustomPhoneForm> {
                   )),
             ),
             const SizedBox(
-              height: 15,
+              height: 5,
             ),
             TextFormField(
               validator: (value) {
@@ -222,8 +103,22 @@ class _CustomPhoneFormState extends State<CustomPhoneForm> {
               ),
             ),
 
-            const SizedBox(height: 20),
-
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: RichText(
+                  text: TextSpan(
+                      text: ' Or Sign up with Email',
+                      style: const TextStyle(color: Color(0xFF169C89)),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          print('pressed got to phone');
+                          widget.ontoggleFirst();
+                        })),
+            ),
+            const SizedBox(
+              height: 5,
+            ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Align(
@@ -249,7 +144,7 @@ class _CustomPhoneFormState extends State<CustomPhoneForm> {
                   )),
             ),
             const SizedBox(
-              height: 15,
+              height: 5,
             ),
             TextFormField(
               validator: (value) {
@@ -284,7 +179,7 @@ class _CustomPhoneFormState extends State<CustomPhoneForm> {
                 fillColor: Color.fromARGB(255, 247, 245, 245),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Align(
@@ -310,17 +205,36 @@ class _CustomPhoneFormState extends State<CustomPhoneForm> {
                   )),
             ),
             const SizedBox(
-              height: 15,
+              height: 5,
             ),
 
             // Password Field
             TextFormField(
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Password can not be empty';
+                  return 'Password cannot be empty';
                 }
+                // Regular expression to check password criteria
+                final hasUppercase = RegExp(r'[A-Z]');
+                final hasDigits = RegExp(r'\d');
+                final hasSpecialCharacters = RegExp(r'[!@#$%^&*(),.?":{}|<>]');
+
+                if (!hasUppercase.hasMatch(value)) {
+                  return 'Password must contain at least one uppercase letter';
+                }
+                if (!hasDigits.hasMatch(value)) {
+                  return 'Password must contain at least one number';
+                }
+                if (!hasSpecialCharacters.hasMatch(value)) {
+                  return 'Password must contain at least one special character';
+                }
+                if (value.length < 8) {
+                  return 'Password must be at least 8 characters long';
+                }
+
                 return null;
               },
+
               obscureText: !_phonepasswordVisible,
               controller: widget.password2,
               decoration: InputDecoration(
@@ -345,8 +259,8 @@ class _CustomPhoneFormState extends State<CustomPhoneForm> {
                       ),
                       onPressed: () {
                         setState(() {
-                          print('password eziga');
                           print(_phonepasswordVisible);
+                          print('eziga');
                           _phonepasswordVisible =
                               !_phonepasswordVisible; // Toggle visibility
                         });
@@ -368,9 +282,10 @@ class _CustomPhoneFormState extends State<CustomPhoneForm> {
                 ),
                 filled: true,
                 fillColor: const Color.fromARGB(255, 247, 245, 245),
-              ), // to hide password input
+              ),
+              // to hide password input
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
 
             // Confirm Password Field
             const Padding(
@@ -398,7 +313,7 @@ class _CustomPhoneFormState extends State<CustomPhoneForm> {
                   )),
             ),
             const SizedBox(
-              height: 15,
+              height: 5,
             ),
             TextFormField(
               validator: (value) {
@@ -431,7 +346,6 @@ class _CustomPhoneFormState extends State<CustomPhoneForm> {
                       ),
                       onPressed: () {
                         setState(() {
-                          print('eziga');
                           _phoneconfirmPasswordVisible =
                               !_phoneconfirmPasswordVisible; // Toggle visibility
                         });
@@ -455,7 +369,7 @@ class _CustomPhoneFormState extends State<CustomPhoneForm> {
                 fillColor: const Color.fromARGB(255, 247, 245, 245),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Align(
@@ -481,7 +395,7 @@ class _CustomPhoneFormState extends State<CustomPhoneForm> {
                   )),
             ),
             const SizedBox(
-              height: 15,
+              height: 5,
             ),
 
             // Language Dropdown
@@ -520,7 +434,7 @@ class _CustomPhoneFormState extends State<CustomPhoneForm> {
                 widget.onLanguageChanged(_selectedCategory);
               },
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Align(
@@ -546,7 +460,7 @@ class _CustomPhoneFormState extends State<CustomPhoneForm> {
                   )),
             ),
             const SizedBox(
-              height: 15,
+              height: 5,
             ),
 
             // Category Dropdown
@@ -584,9 +498,6 @@ class _CustomPhoneFormState extends State<CustomPhoneForm> {
                 });
                 widget.onCategoryChanged(_selectedCategory);
               },
-            ),
-            const SizedBox(
-              height: 20,
             ),
           ],
         ),
