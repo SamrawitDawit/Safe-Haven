@@ -9,6 +9,11 @@ import 'package:safe_haven/features/auth/data/models/authenticated_model.dart';
 import 'package:safe_haven/features/auth/data/models/log_in_model.dart';
 import 'package:safe_haven/features/auth/data/models/reset_password_model.dart';
 import 'package:safe_haven/features/auth/data/models/sign_up_model.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:crypto/crypto.dart';
+
+
+
 
 abstract class AuthenticationRemoteDataSource {
   /// calls the http://loginendpoint
@@ -96,7 +101,7 @@ class AuthRemoteDataSourceImpl extends AuthenticationRemoteDataSource {
     try {
       print(jsonEncode(resetEmail));
       final response =
-          await client.post(uri, body: jsonEncode(resetEmail), headers: {
+      await client.post(uri, body: jsonEncode(resetEmail), headers: {
         'Content-Type': 'application/json',
       });
       print(response.statusCode);
@@ -115,6 +120,7 @@ class AuthRemoteDataSourceImpl extends AuthenticationRemoteDataSource {
 
   static const token =
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb2RlIjo0ODc2MCwiZW1haWwiOiJMaXlhLmRhbmllbC56ZWxla2VAZ21haWwuY29tIiwiZXhwIjoxNzI3MDg4MzEyfQ.yVnejOPdAp2RtmTLth5yTjoZdlmGBYcrWp3DrRe3_mI';
+
   @override
   Future<Unit> resetPassword(ResetPasswordModel resetPasswordModel) async {
     var uri = Uri.parse('${Urls.authUrl}/reset-password');
@@ -138,76 +144,39 @@ class AuthRemoteDataSourceImpl extends AuthenticationRemoteDataSource {
     }
   }
 
+
+  String generateCodeVerifier() {
+    final bytes = List<int>.generate(32, (i) => i);
+    return base64UrlEncode(bytes).replaceAll('=', '');
+  }
+  String generateCodeChallenge(String codeVerifier) {
+    final bytes = utf8.encode(codeVerifier);
+    final digest = sha256.convert(bytes);
+    return base64UrlEncode(digest.bytes).replaceAll('=', '');
+  }
   @override
   Future<Unit> googleLogin() async {
-    var uri = Uri.parse('${Urls.authUrl}/auth/google');
-    print('ezi dersual in the google sign in api');
+    // Defining Google OAuth URL with the PKCE parameters
+    final String codeVerifier = generateCodeVerifier();
+    final String codeChallenge = generateCodeChallenge(codeVerifier);
+    final String state = Uri.encodeComponent(codeVerifier);
 
-    try {
-      final response = await client.get(uri);
+    var authUrl = Uri.parse('https://accounts.google.com/o/oauth2/auth?'
+        'client_id=688899837278-7djtpuua3o7qflnjss58qio0bo8b03o4.apps.googleusercontent.com&'
+        'redirect_uri=${Urls.authUrl}/google/callback?client=mobile&'
+        'response_type=code&'
+        'scope=profile email&'
+        'state=$state&'
+        'code_challenge=$codeChallenge&'
+        'code_challenge_method=S256');
 
-      // if (response.statusCode == 201) {
-      print(response);
+
+    // Launching the URL in the external browser
+    if (await canLaunchUrl(authUrl)) {
+      await launchUrl(authUrl);
       return unit;
-      // } else if (response.statusCode == 500) {
-      //   throw UserAlreadyExistsException();
-      // } else {
-      //   throw const ServerException('server error in signing up');
-      // }
-    } on ServerException {
-      throw const ServerException('server error in googls sign in');
+    } else {
+      throw 'Could not launch $authUrl';
     }
   }
-
-  // @override
-  // Future<UserDataModel> getuser(String token) async{
-  //   var uri = Uri.parse('${Urls.authUrl}/users/me');
-  //   try{
-  //     final response = await client.get(uri, headers: {'Authorization' : 'Bearer $token'});
-  //     if (response.statusCode == 200){
-  //       return UserDataModel.fromJson(json.decode(response.body)['data']);
-  //     } else if (response.statusCode == 401){
-  //       throw UnauthorizedException();
-  //     } else{
-  //       throw ServerException();
-  //     }
-  //   } on SocketException{
-  //     throw const SocketException(ErrorMessages.socketError);
-  //   }
-  // }
-
-  // @override
-  // Future<AuthenticatedModel> login(LoginModel login_model) async{
-  //   var uri = Uri.parse('${Urls.authUrl}/auth/login');
-  //   try{
-  //     final response = await client.post(uri, body: login_model.toJson() );
-  //     if (response.statusCode == 201){
-  //       return AuthenticatedModel.fromJson(json.decode(response.body)['data']);
-  //     } else if (response.statusCode == 401) {
-  //       throw UnauthorizedException();
-  //     }else{
-  //       throw ServerException();
-  //     }
-  //   } on SocketException{
-  //     throw const SocketException(ErrorMessages.socketError);
-  //   }
-  // }
-
-  // @override
-  // Future<Unit> register(RegisterModel register_model) async{
-  //   var uri = Uri.parse('${Urls.authUrl}/auth/register');
-
-  //   try{
-  //     final response = await client.post(uri, body: register_model.toJson());
-  //     if (response.statusCode == 201){
-  //       return unit;
-  //     } else if(response.statusCode == 409){
-  //       throw UserAlreadyExistsException();
-  //     } else{
-  //       throw ServerException();
-  //     }
-  //   } on SocketException{
-  //     throw const SocketException(ErrorMessages.socketError);
-  //   }
-  // }
 }
