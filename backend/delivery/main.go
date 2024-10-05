@@ -40,7 +40,7 @@ func main() {
 	caseRepo := repositories.NewCaseRepo(db, config.ENV.CASE_COLLECTION)
 	authUsecase := usecases.NewAuthUseCase(userRepo, &jwtService, &emailService, &pwdService, &encryptService)
 	caseUsecase := usecases.NewCaseUseCase(caseRepo, &encryptService)
-	authController := controllers.NewAuthController(authUsecase, config.GoogleOAuthConfig)
+	authController := controllers.NewAuthController(authUsecase)
 	caseController := controllers.NewCaseController(caseUsecase)
 
 	router.NewRouter(
