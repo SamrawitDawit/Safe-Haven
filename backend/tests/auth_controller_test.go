@@ -17,7 +17,6 @@ import (
 
 	// "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"golang.org/x/oauth2"
 )
 
 type AuthControllerTestSuite struct {
@@ -25,7 +24,6 @@ type AuthControllerTestSuite struct {
 	mockUsecase  *mocks.AuthUseCaseInterface
 	controller   *controllers.AuthController
 	recorder     *httptest.ResponseRecorder
-	googleConfig *oauth2.Config
 }
 
 func (suite *AuthControllerTestSuite) SetupTest() {
