@@ -8,14 +8,12 @@ import '../../../../Fixtures/dummy_data_reader.dart';
 
 void main() {
   final testSignUpModel2 = SignUpModel(
-      userType: 'normal',
       password: 'pass',
       fullName: 'user model',
       phoneNumber: '123',
       language: 'lang',
       category: 'cat',
-      email: '',
-      anonymousDifferentiator: '');
+      email: '',);
 
   test('should be a subclass of product model', () async {
     expect(testSignUpModel2, isA<SignUpEntity>());
@@ -46,7 +44,6 @@ void main() {
   test('should return a valid log in model json', () async {
     final testSignUpModel = SignUpModel(
       fullName: 'name',
-        userType: 'anonymous',
         category: 'General',
         language: 'lang',
         password: 'pass');

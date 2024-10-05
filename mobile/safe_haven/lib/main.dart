@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:safe_haven/features/auth/presentation/bloc/bloc/auth_bloc_bloc.dart';
@@ -10,17 +9,7 @@ import 'package:safe_haven/features/auth/presentation/screens/sign_up_Phone.dart
 import 'package:safe_haven/injection_container.dart' as di;
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:safe_haven/login_api.dart';
 import 'injection_container.dart';
-
-// void main() async {
-//   WidgetsFlutterBinding.ensureInitialized();
-//   await di.init();
-//   di.sl<http.Client>();
-//   runApp(MyApp());
-// }
-import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
