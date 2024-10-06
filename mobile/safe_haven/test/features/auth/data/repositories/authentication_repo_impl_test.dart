@@ -5,7 +5,7 @@ import 'package:safe_haven/features/auth/data/models/authenticated_model.dart';
 import 'package:safe_haven/features/auth/data/models/log_in_model.dart';
 import 'package:safe_haven/features/auth/data/repositories/authentication_repo_impl.dart';
 import 'package:safe_haven/features/auth/domain/entities/log_in_entity.dart';
-import 'package:safe_haven/features/auth/domain/entities/sign_up_entity.dart';
+// import 'package:safe_haven/features/auth/domain/entities/sign_up_entity.dart';
 
 import '../../../../helpers/test_helper.mocks.dart';
 
@@ -28,12 +28,12 @@ void main() {
   });
 
   group('getconnectedsignup', () {
-    final testsignup = SignUpEntity(
-      fullName: 'name',
-        language: 'lang',
-        category: 'cat',
-        password: 'pass',
-        phoneNumber: '123');
+    // final testsignup = SignUpEntity(
+    //   fullName: 'name',
+    //     language: 'lang',
+    //     category: 'cat',
+    //     password: 'pass',
+    //     phoneNumber: '123');
 
     final testloginEnity =
         LogInEntity(userType: 'normal', password: 'password', phoneNumber: '123',fullName: 'name',email: '123');
@@ -50,10 +50,9 @@ void main() {
         print(testloginmodel);
         return AuthenticatedModel(token: 'token' , refreshToken: 'refreshToken');
       });
-      when(mockAuthenticationLocalDataSource.cacheToken('token'))
+      when(mockAuthenticationLocalDataSource.cacheTokens('token', 'refreshToken'))
           .thenAnswer((_) async => unit);
       print('ezietach');
-      print(testloginEnity);
       print(testloginEnity.email);
       print(testloginEnity.phoneNumber);
       print(testloginEnity.fullName);

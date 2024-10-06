@@ -4,33 +4,41 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i7;
-import 'dart:convert' as _i18;
-import 'dart:typed_data' as _i19;
+import 'dart:convert' as _i22;
+import 'dart:typed_data' as _i23;
 
 import 'package:dartz/dartz.dart' as _i2;
 import 'package:http/http.dart' as _i5;
 import 'package:internet_connection_checker/internet_connection_checker.dart'
     as _i4;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i15;
+import 'package:mockito/src/dummies.dart' as _i17;
 import 'package:safe_haven/core/error/faliure.dart' as _i8;
-import 'package:safe_haven/core/network/network_info.dart' as _i16;
+import 'package:safe_haven/core/network/network_info.dart' as _i18;
 import 'package:safe_haven/features/auth/data/data_sources/local_data_source.dart'
-    as _i14;
+    as _i16;
 import 'package:safe_haven/features/auth/data/data_sources/remote_data_source.dart'
-    as _i11;
+    as _i12;
 import 'package:safe_haven/features/auth/data/models/authenticated_model.dart'
     as _i3;
-import 'package:safe_haven/features/auth/data/models/log_in_model.dart' as _i12;
+import 'package:safe_haven/features/auth/data/models/log_in_model.dart' as _i13;
+import 'package:safe_haven/features/auth/data/models/reset_password_model.dart'
+    as _i15;
 import 'package:safe_haven/features/auth/data/models/sign_up_model.dart'
-    as _i13;
+    as _i14;
 import 'package:safe_haven/features/auth/domain/entities/log_in_entity.dart'
     as _i9;
+import 'package:safe_haven/features/auth/domain/entities/reset_password_entity.dart'
+    as _i11;
 import 'package:safe_haven/features/auth/domain/entities/sign_up_entity.dart'
     as _i10;
 import 'package:safe_haven/features/auth/domain/repositories/auth_repository.dart'
     as _i6;
-import 'package:shared_preferences/shared_preferences.dart' as _i17;
+import 'package:safe_haven/features/case/domain/entities/case_entity.dart'
+    as _i21;
+import 'package:safe_haven/features/case/domain/repositories/case_repository.dart'
+    as _i20;
+import 'package:shared_preferences/shared_preferences.dart' as _i19;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -178,19 +186,72 @@ class MockAuthenticationRepository extends _i1.Mock
           ),
         )),
       ) as _i7.Future<_i2.Either<_i8.Failure, _i2.Unit>>);
+
+  @override
+  _i7.Future<_i2.Either<_i8.Failure, _i2.Unit>> forgotPassword(
+          String? resetEmail) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #forgotPassword,
+          [resetEmail],
+        ),
+        returnValue: _i7.Future<_i2.Either<_i8.Failure, _i2.Unit>>.value(
+            _FakeEither_0<_i8.Failure, _i2.Unit>(
+          this,
+          Invocation.method(
+            #forgotPassword,
+            [resetEmail],
+          ),
+        )),
+      ) as _i7.Future<_i2.Either<_i8.Failure, _i2.Unit>>);
+
+  @override
+  _i7.Future<_i2.Either<_i8.Failure, _i2.Unit>> resetPassword(
+          _i11.ResetPasswordEntity? resetPasswordEntity) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #resetPassword,
+          [resetPasswordEntity],
+        ),
+        returnValue: _i7.Future<_i2.Either<_i8.Failure, _i2.Unit>>.value(
+            _FakeEither_0<_i8.Failure, _i2.Unit>(
+          this,
+          Invocation.method(
+            #resetPassword,
+            [resetPasswordEntity],
+          ),
+        )),
+      ) as _i7.Future<_i2.Either<_i8.Failure, _i2.Unit>>);
+
+  @override
+  _i7.Future<_i2.Either<_i8.Failure, _i2.Unit>> googleSignIn() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #googleSignIn,
+          [],
+        ),
+        returnValue: _i7.Future<_i2.Either<_i8.Failure, _i2.Unit>>.value(
+            _FakeEither_0<_i8.Failure, _i2.Unit>(
+          this,
+          Invocation.method(
+            #googleSignIn,
+            [],
+          ),
+        )),
+      ) as _i7.Future<_i2.Either<_i8.Failure, _i2.Unit>>);
 }
 
 /// A class which mocks [AuthenticationRemoteDataSource].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockAuthenticationRemoteDataSource extends _i1.Mock
-    implements _i11.AuthenticationRemoteDataSource {
+    implements _i12.AuthenticationRemoteDataSource {
   MockAuthenticationRemoteDataSource() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i7.Future<_i3.AuthenticatedModel> login(_i12.LogInModel? logInModel) =>
+  _i7.Future<_i3.AuthenticatedModel> login(_i13.LogInModel? logInModel) =>
       (super.noSuchMethod(
         Invocation.method(
           #login,
@@ -207,7 +268,7 @@ class MockAuthenticationRemoteDataSource extends _i1.Mock
       ) as _i7.Future<_i3.AuthenticatedModel>);
 
   @override
-  _i7.Future<_i2.Unit> signup(_i13.SignUpModel? signUpModel) =>
+  _i7.Future<_i2.Unit> signup(_i14.SignUpModel? signUpModel) =>
       (super.noSuchMethod(
         Invocation.method(
           #signup,
@@ -221,13 +282,61 @@ class MockAuthenticationRemoteDataSource extends _i1.Mock
           ),
         )),
       ) as _i7.Future<_i2.Unit>);
+
+  @override
+  _i7.Future<_i2.Unit> forgotPassword(String? resetEmail) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #forgotPassword,
+          [resetEmail],
+        ),
+        returnValue: _i7.Future<_i2.Unit>.value(_FakeUnit_2(
+          this,
+          Invocation.method(
+            #forgotPassword,
+            [resetEmail],
+          ),
+        )),
+      ) as _i7.Future<_i2.Unit>);
+
+  @override
+  _i7.Future<_i2.Unit> resetPassword(
+          _i15.ResetPasswordModel? resetPasswordModel) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #resetPassword,
+          [resetPasswordModel],
+        ),
+        returnValue: _i7.Future<_i2.Unit>.value(_FakeUnit_2(
+          this,
+          Invocation.method(
+            #resetPassword,
+            [resetPasswordModel],
+          ),
+        )),
+      ) as _i7.Future<_i2.Unit>);
+
+  @override
+  _i7.Future<_i2.Unit> googleLogin() => (super.noSuchMethod(
+        Invocation.method(
+          #googleLogin,
+          [],
+        ),
+        returnValue: _i7.Future<_i2.Unit>.value(_FakeUnit_2(
+          this,
+          Invocation.method(
+            #googleLogin,
+            [],
+          ),
+        )),
+      ) as _i7.Future<_i2.Unit>);
 }
 
 /// A class which mocks [AuthenticationLocalDataSource].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockAuthenticationLocalDataSource extends _i1.Mock
-    implements _i14.AuthenticationLocalDataSource {
+    implements _i16.AuthenticationLocalDataSource {
   MockAuthenticationLocalDataSource() {
     _i1.throwOnMissingStub(this);
   }
@@ -238,7 +347,7 @@ class MockAuthenticationLocalDataSource extends _i1.Mock
           #getToken,
           [],
         ),
-        returnValue: _i7.Future<String>.value(_i15.dummyValue<String>(
+        returnValue: _i7.Future<String>.value(_i17.dummyValue<String>(
           this,
           Invocation.method(
             #getToken,
@@ -248,16 +357,26 @@ class MockAuthenticationLocalDataSource extends _i1.Mock
       ) as _i7.Future<String>);
 
   @override
-  _i7.Future<_i2.Unit> cacheToken(String? token) => (super.noSuchMethod(
+  _i7.Future<_i2.Unit> cacheTokens(
+    String? token,
+    String? refreshToken,
+  ) =>
+      (super.noSuchMethod(
         Invocation.method(
-          #cacheToken,
-          [token],
+          #cacheTokens,
+          [
+            token,
+            refreshToken,
+          ],
         ),
         returnValue: _i7.Future<_i2.Unit>.value(_FakeUnit_2(
           this,
           Invocation.method(
-            #cacheToken,
-            [token],
+            #cacheTokens,
+            [
+              token,
+              refreshToken,
+            ],
           ),
         )),
       ) as _i7.Future<_i2.Unit>);
@@ -276,12 +395,27 @@ class MockAuthenticationLocalDataSource extends _i1.Mock
           ),
         )),
       ) as _i7.Future<_i2.Unit>);
+
+  @override
+  _i7.Future<String> getRefreshToken() => (super.noSuchMethod(
+        Invocation.method(
+          #getRefreshToken,
+          [],
+        ),
+        returnValue: _i7.Future<String>.value(_i17.dummyValue<String>(
+          this,
+          Invocation.method(
+            #getRefreshToken,
+            [],
+          ),
+        )),
+      ) as _i7.Future<String>);
 }
 
 /// A class which mocks [NetworkInfo].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockNetworkInfo extends _i1.Mock implements _i16.NetworkInfo {
+class MockNetworkInfo extends _i1.Mock implements _i18.NetworkInfo {
   MockNetworkInfo() {
     _i1.throwOnMissingStub(this);
   }
@@ -390,7 +524,7 @@ class MockInternetConnectionChecker extends _i1.Mock
 /// A class which mocks [SharedPreferences].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockSharedPreferences extends _i1.Mock implements _i17.SharedPreferences {
+class MockSharedPreferences extends _i1.Mock implements _i19.SharedPreferences {
   MockSharedPreferences() {
     _i1.throwOnMissingStub(this);
   }
@@ -571,7 +705,7 @@ class MockSharedPreferences extends _i1.Mock implements _i17.SharedPreferences {
 /// A class which mocks [CustomHttpClient].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCustomHttpClient extends _i1.Mock implements _i16.CustomHttpClient {
+class MockCustomHttpClient extends _i1.Mock implements _i18.CustomHttpClient {
   MockCustomHttpClient() {
     _i1.throwOnMissingStub(this);
   }
@@ -666,6 +800,103 @@ class MockCustomHttpClient extends _i1.Mock implements _i16.CustomHttpClient {
       ) as _i7.Future<_i5.StreamedResponse>);
 }
 
+/// A class which mocks [CaseRepository].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockCaseRepository extends _i1.Mock implements _i20.CaseRepository {
+  MockCaseRepository() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i7.Future<_i2.Either<_i8.Failure, _i21.CaseEntity>> createCase(
+          _i21.CaseEntity? caseEntity) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #createCase,
+          [caseEntity],
+        ),
+        returnValue: _i7.Future<_i2.Either<_i8.Failure, _i21.CaseEntity>>.value(
+            _FakeEither_0<_i8.Failure, _i21.CaseEntity>(
+          this,
+          Invocation.method(
+            #createCase,
+            [caseEntity],
+          ),
+        )),
+      ) as _i7.Future<_i2.Either<_i8.Failure, _i21.CaseEntity>>);
+
+  @override
+  _i7.Future<_i2.Either<_i8.Failure, _i21.CaseEntity>> updateCase(String? id) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateCase,
+          [id],
+        ),
+        returnValue: _i7.Future<_i2.Either<_i8.Failure, _i21.CaseEntity>>.value(
+            _FakeEither_0<_i8.Failure, _i21.CaseEntity>(
+          this,
+          Invocation.method(
+            #updateCase,
+            [id],
+          ),
+        )),
+      ) as _i7.Future<_i2.Either<_i8.Failure, _i21.CaseEntity>>);
+
+  @override
+  _i7.Future<_i2.Either<_i8.Failure, _i2.Unit>> deleteCase(String? id) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #deleteCase,
+          [id],
+        ),
+        returnValue: _i7.Future<_i2.Either<_i8.Failure, _i2.Unit>>.value(
+            _FakeEither_0<_i8.Failure, _i2.Unit>(
+          this,
+          Invocation.method(
+            #deleteCase,
+            [id],
+          ),
+        )),
+      ) as _i7.Future<_i2.Either<_i8.Failure, _i2.Unit>>);
+
+  @override
+  _i7.Future<_i2.Either<_i8.Failure, _i21.CaseEntity>> getCase(
+          _i21.CaseEntity? caseEntity) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getCase,
+          [caseEntity],
+        ),
+        returnValue: _i7.Future<_i2.Either<_i8.Failure, _i21.CaseEntity>>.value(
+            _FakeEither_0<_i8.Failure, _i21.CaseEntity>(
+          this,
+          Invocation.method(
+            #getCase,
+            [caseEntity],
+          ),
+        )),
+      ) as _i7.Future<_i2.Either<_i8.Failure, _i21.CaseEntity>>);
+
+  @override
+  _i7.Future<_i2.Either<_i8.Failure, List<_i21.CaseEntity>>> getCases() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getCases,
+          [],
+        ),
+        returnValue:
+            _i7.Future<_i2.Either<_i8.Failure, List<_i21.CaseEntity>>>.value(
+                _FakeEither_0<_i8.Failure, List<_i21.CaseEntity>>(
+          this,
+          Invocation.method(
+            #getCases,
+            [],
+          ),
+        )),
+      ) as _i7.Future<_i2.Either<_i8.Failure, List<_i21.CaseEntity>>>);
+}
+
 /// A class which mocks [Client].
 ///
 /// See the documentation for Mockito's code generation for more information.
@@ -721,7 +952,7 @@ class MockHttpClient extends _i1.Mock implements _i5.Client {
     Uri? url, {
     Map<String, String>? headers,
     Object? body,
-    _i18.Encoding? encoding,
+    _i22.Encoding? encoding,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -752,7 +983,7 @@ class MockHttpClient extends _i1.Mock implements _i5.Client {
     Uri? url, {
     Map<String, String>? headers,
     Object? body,
-    _i18.Encoding? encoding,
+    _i22.Encoding? encoding,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -783,7 +1014,7 @@ class MockHttpClient extends _i1.Mock implements _i5.Client {
     Uri? url, {
     Map<String, String>? headers,
     Object? body,
-    _i18.Encoding? encoding,
+    _i22.Encoding? encoding,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -814,7 +1045,7 @@ class MockHttpClient extends _i1.Mock implements _i5.Client {
     Uri? url, {
     Map<String, String>? headers,
     Object? body,
-    _i18.Encoding? encoding,
+    _i22.Encoding? encoding,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -851,7 +1082,7 @@ class MockHttpClient extends _i1.Mock implements _i5.Client {
           [url],
           {#headers: headers},
         ),
-        returnValue: _i7.Future<String>.value(_i15.dummyValue<String>(
+        returnValue: _i7.Future<String>.value(_i17.dummyValue<String>(
           this,
           Invocation.method(
             #read,
@@ -862,7 +1093,7 @@ class MockHttpClient extends _i1.Mock implements _i5.Client {
       ) as _i7.Future<String>);
 
   @override
-  _i7.Future<_i19.Uint8List> readBytes(
+  _i7.Future<_i23.Uint8List> readBytes(
     Uri? url, {
     Map<String, String>? headers,
   }) =>
@@ -872,8 +1103,8 @@ class MockHttpClient extends _i1.Mock implements _i5.Client {
           [url],
           {#headers: headers},
         ),
-        returnValue: _i7.Future<_i19.Uint8List>.value(_i19.Uint8List(0)),
-      ) as _i7.Future<_i19.Uint8List>);
+        returnValue: _i7.Future<_i23.Uint8List>.value(_i23.Uint8List(0)),
+      ) as _i7.Future<_i23.Uint8List>);
 
   @override
   _i7.Future<_i5.StreamedResponse> send(_i5.BaseRequest? request) =>
