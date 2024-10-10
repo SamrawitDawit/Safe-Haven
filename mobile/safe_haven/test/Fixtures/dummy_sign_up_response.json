@@ -1,0 +1,12 @@
+{
+    "data" : {
+     "userType": "normal",
+     "password": "pass",
+     "fullName": "user model",
+     "phoneNumber": "123",
+     "anonymousDifferentiator" : "",
+     "email": "",
+     "language": "lang",
+     "category": "cat"
+     }
+}
