@@ -7,12 +7,10 @@ import '../../../../Fixtures/dummy_data_reader.dart';
 
 void main() {
   final testLogInModel = LogInModel(
-      userType: 'normal',
       password: 'pass',
       fullName: 'user model',
       phoneNumber: '123',
-      email: "",
-      anonymousDifferentiator: "");
+      email: "",);
 
   test('should be a subclass of product model', () async {
     expect(testLogInModel, isA<LogInEntity>());
@@ -56,13 +54,11 @@ void main() {
 
   test('logged in user model returns self', () async {
     final loggedInStuff = LoggedInModel(
-        userType: 'normal',
         category: 'cat',
         language: 'lang',
         password: 'pass',
         fullName: 'user model',
         phoneNumber: '123',
-        anonymousDifferentiator: '',
         email: ''
         );
 

@@ -28,7 +28,7 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        manifestPlaceholders = [appAuthRedirectScheme: "https://3613-196-189-114-138.ngrok-free.app/auth/google/callback"]
+        manifestPlaceholders = [appAuthRedirectScheme: "https://233f-196-188-244-28.ngrok-free.app/auth/google/callback"]
     }
 
     buildTypes {

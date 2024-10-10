@@ -44,7 +44,9 @@ class _SignUpScreen extends State<SignUpscreen> {
         } else if (state is AuthError) {
           if (!context.mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(state.message),
+            content: Text(
+              state.message,
+            ),
             backgroundColor: Colors.red,
           ));
         }
@@ -406,7 +408,7 @@ class _CustomFormState extends State<CustomForm> {
                   child: Icon(Icons.lock, color: Colors.grey),
                 ),
                 suffixIcon: Padding(
-                  padding: const EdgeInsets.all(12.0),
+                  padding: EdgeInsets.fromLTRB(0, 0, 10, 10),
                   child: Container(
                     height: 30,
                     width: 30,
@@ -493,9 +495,8 @@ class _CustomFormState extends State<CustomForm> {
                   child: Icon(Icons.lock, color: Colors.grey),
                 ),
                 suffixIcon: Padding(
-                  padding: const EdgeInsets.all(12.0),
+                  padding: EdgeInsets.fromLTRB(0, 0, 10, 10),
                   child: Container(
-                    padding: EdgeInsets.fromLTRB(0, 0, 10, 10),
                     height: 30,
                     width: 30,
                     child: IconButton(

@@ -16,18 +16,9 @@ void main() {
         LogInUsecase(authenticationRepository: mockAuthenticationRepository);
   });
 
-  final testloginEnity = LogInEntity(
-      userType: 'normal',
-      password: 'password',
-      fullName: '123',
-      email: 'email');
+  final testloginEnity =
+      LogInEntity(password: 'password', fullName: '123', email: 'email');
 
-  final loggedinEntity = LoggedInEntity(
-      language: 'lang',
-      category: 'cat',
-      userType: 'normal',
-      password: 'pass',
-      email: 'email');
   test(
       'tests the correct url is called when logging in and returns the proper logged in entity',
       () async {

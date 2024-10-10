@@ -42,10 +42,10 @@ class AuthenticationRepoImpl implements AuthenticationRepository {
       } on ServerException {
         return const Left(ServerException('server exception'));
       } on SocketException {
-        return const Left(ConnectionFailure('no internet'));
+        return const Left(ConnectionFailure('No internet connection'));
       }
     } else {
-      return const Left(ConnectionFailure('no internet'));
+      return const Left(ConnectionFailure('No internet connection'));
     }
   }
 
@@ -74,10 +74,10 @@ class AuthenticationRepoImpl implements AuthenticationRepository {
       } on ServerException {
         return const Left(ServerException('server exception'));
       } on SocketException {
-        return const Left(ConnectionFailure('no internet'));
+        return const Left(ConnectionFailure('Socket connection'));
       }
     } else {
-      return const Left(ConnectionFailure('no internet'));
+      return const Left(ConnectionFailure('No internet connection'));
     }
   }
 
@@ -95,10 +95,10 @@ class AuthenticationRepoImpl implements AuthenticationRepository {
       } on ServerException {
         return const Left(ServerException('server exception'));
       } on SocketException {
-        return const Left(ConnectionFailure('no internet'));
+        return const Left(ConnectionFailure('No internet connection'));
       }
     } else {
-      return const Left(ConnectionFailure('no internet'));
+      return const Left(ConnectionFailure('No internet connection'));
     }
   }
 
@@ -118,10 +118,10 @@ class AuthenticationRepoImpl implements AuthenticationRepository {
       } on ServerException {
         return const Left(ServerException('server exception'));
       } on SocketException {
-        return const Left(ConnectionFailure('no internet'));
+        return const Left(ConnectionFailure('No internet connection'));
       }
     } else {
-      return const Left(ConnectionFailure('no internet'));
+      return const Left(ConnectionFailure('No internet connection'));
     }
   }
 
@@ -138,10 +138,10 @@ class AuthenticationRepoImpl implements AuthenticationRepository {
       } on ServerException {
         return const Left(ServerException('server exception'));
       } on SocketException {
-        return const Left(ConnectionFailure('no internet'));
+        return const Left(ConnectionFailure('No internet connection'));
       }
     } else {
-      return const Left(ConnectionFailure('no internet'));
+      return const Left(ConnectionFailure('No internet connection'));
     }
   }
 }
