@@ -36,7 +36,8 @@ class AuthBlocBloc extends Bloc<AuthBlocEvent, AuthBlocState> {
           SignUpParams(signUpEntity: event.registrationEntity));
 
       result.fold((failure) {
-        emit(AuthError(message: 'failed in being registered'));
+        print(failure);
+        emit(AuthError(message: failure.errorMessage));
       }, (data) {
         emit(AuthRegisterSuccess(
             successMessage: 'successfully registered you!'));

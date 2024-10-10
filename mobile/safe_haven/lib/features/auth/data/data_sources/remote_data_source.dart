@@ -12,9 +12,6 @@ import 'package:safe_haven/features/auth/data/models/sign_up_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:crypto/crypto.dart';
 
-
-
-
 abstract class AuthenticationRemoteDataSource {
   /// calls the http://loginendpoint
   Future<AuthenticatedModel> login(LogInModel logInModel);
@@ -101,7 +98,7 @@ class AuthRemoteDataSourceImpl extends AuthenticationRemoteDataSource {
     try {
       print(jsonEncode(resetEmail));
       final response =
-      await client.post(uri, body: jsonEncode(resetEmail), headers: {
+          await client.post(uri, body: jsonEncode(resetEmail), headers: {
         'Content-Type': 'application/json',
       });
       print(response.statusCode);
@@ -144,16 +141,17 @@ class AuthRemoteDataSourceImpl extends AuthenticationRemoteDataSource {
     }
   }
 
-
   String generateCodeVerifier() {
     final bytes = List<int>.generate(32, (i) => i);
     return base64UrlEncode(bytes).replaceAll('=', '');
   }
+
   String generateCodeChallenge(String codeVerifier) {
     final bytes = utf8.encode(codeVerifier);
     final digest = sha256.convert(bytes);
     return base64UrlEncode(digest.bytes).replaceAll('=', '');
   }
+
   @override
   Future<Unit> googleLogin() async {
     // Defining Google OAuth URL with the PKCE parameters
@@ -169,7 +167,6 @@ class AuthRemoteDataSourceImpl extends AuthenticationRemoteDataSource {
         'state=$state&'
         'code_challenge=$codeChallenge&'
         'code_challenge_method=S256');
-
 
     // Launching the URL in the external browser
     if (await canLaunchUrl(authUrl)) {

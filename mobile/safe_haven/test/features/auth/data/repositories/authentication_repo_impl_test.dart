@@ -36,10 +36,10 @@ void main() {
     //     phoneNumber: '123');
 
     final testloginEnity =
-        LogInEntity(userType: 'normal', password: 'password', phoneNumber: '123',fullName: 'name',email: '123');
+        LogInEntity(password: 'password', phoneNumber: '123',fullName: 'name',email: '123');
 
     final testloginmodel =
-        LogInModel(userType: 'normal', password: 'password', email: 'wer');
+        LogInModel( password: 'password', email: 'wer');
 
     test('should check device online', () async {
       when(mockNetworkInfo.isConnected).thenAnswer((_) async {

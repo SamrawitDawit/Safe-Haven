@@ -60,7 +60,6 @@ class _LogInScreen extends State<LogInscreen> {
                         onPressed: () {
                           context.read<AuthBlocBloc>().add(LoginEvent(
                               loginEntity: LogInEntity(
-                                  userType: 'normal',
                                   password: password.text,
                                   email: email.text)));
                         },
