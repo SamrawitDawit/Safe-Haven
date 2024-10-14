@@ -4,7 +4,7 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
-import SignInWithGoogle from "../../signup/components/SignInWithGoogle";
+import SignInWithGoogle from "../signup/components/SignInWithGoogle";
 
 interface LoginValues {
   identifier: string; // Email or phone number
@@ -36,7 +36,7 @@ const LoginEmail = () => {
   };
 
   return (
-    <div className="flex justify-center mt-0">
+    <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="flex flex-col gap-4 w-[480px] mt-50">
         <h2 className="text-3xl text-center font-bold font-sans my-4">
           Log In
@@ -82,11 +82,16 @@ const LoginEmail = () => {
           <input
             type="submit"
             value="Log In"
-            className="bg-[#4640DE] px-6 py-3 rounded-[80px] text-white font-epilogue font-bold text-[12px] mt-4"
+            className="w-full bg-[#96D1D5] text-white py-2 px-4 rounded-md hover:bg-teal-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
           />
         </form>
-
+        <div className="flex items-center justify-center my-4">
+          <hr className="w-full border-t border-gray-300" />
+          <span className="px-2 text-gray-500">Or</span>
+          <hr className="w-full border-t border-gray-300" />
+        </div>
         {/* Sign In with Google */}
+
         <SignInWithGoogle />
 
         {/* Sign Up Link */}
@@ -95,8 +100,8 @@ const LoginEmail = () => {
             Don&apos;t have an account?
           </p>
           <Link
-            href="/signup"
-            className="text-[16px] font-inter font-semibold leading-[24px] text-[#4640DE] h-[24px]"
+            href="/auth/signup"
+            className="text-[16px] font-inter font-semibold leading-[24px] text-[#1ddbe9] h-[24px]"
           >
             Sign up
           </Link>
@@ -107,7 +112,7 @@ const LoginEmail = () => {
           </p>
           <Link
             href="/auth/forgot-password"
-            className="text-[16px] font-inter font-semibold leading-[24px] text-[#4640DE] h-[24px]"
+            className="text-[16px] font-inter font-semibold leading-[24px] text-[#1ddbe9] h-[24px]"
           >
             Forgot Password
           </Link>

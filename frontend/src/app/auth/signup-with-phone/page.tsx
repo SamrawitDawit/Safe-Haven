@@ -127,7 +127,7 @@ export default function SignUpwithPhone() {
               </FormItem>
             )}
           />
-          <Link href="/signup" className="text-slate-500 text-sm">
+          <Link href="/auth/signup" className="text-slate-500 text-sm">
             Use Email instead
           </Link>
           <FormField

@@ -7,9 +7,9 @@ const ResetPasswordPage = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const searchParams = useSearchParams(); // For extracting query parameters
-  const token = searchParams.get("token"); // Assuming token is passed as a query parameter
-
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+  const router = useRouter();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -33,7 +33,7 @@ const ResetPasswordPage = () => {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ newPassword, token }),
+          body: JSON.stringify({ new_password: newPassword, token }),
         }
       );
 
@@ -41,6 +41,9 @@ const ResetPasswordPage = () => {
 
       if (response.ok) {
         setSuccess("Password has been successfully updated.");
+        setTimeout(() => {
+          router.push("/");
+        }, 2000);
       } else if (data.error === "Invalid token") {
         setError("Invalid or expired token. Please request a new reset link.");
       } else {

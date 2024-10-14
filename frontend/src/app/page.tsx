@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import SignUpForm from "./signup/page";
+import SignUpForm from "./auth/signup/page";
 import { useSession, signOut } from "next-auth/react";
+import Link from "next/link";
 
 export default function Home() {
   const { data: session } = useSession();
@@ -25,7 +26,9 @@ export default function Home() {
           </button>
         </div>
       ) : (
-        <p>Please login/signin to continue </p>
+        <p>
+          Please <Link href="/auth/signup">login/signin </Link>to continue{" "}
+        </p>
       )}
     </div>
   );
