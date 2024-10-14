@@ -22,7 +22,7 @@ func NewUserRepo(db *mongo.Database, collectionName string) interfaces.UserRepos
 	}
 }
 
-const queryTimeout = 10 * time.Second
+const queryTimeout = 30 * time.Second
 
 func (u *UserRepository) CreateUser(user *domain.User) *domain.CustomError {
 	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)

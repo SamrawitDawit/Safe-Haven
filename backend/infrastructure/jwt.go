@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"backend/domain"
+	"backend/utils"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -22,6 +23,7 @@ func (s *JWTService) GenerateToken(user *domain.User) (string, string, *domain.C
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	accessTokenString, err := accessToken.SignedString([]byte(s.JwtSecret))
 	if err != nil {
+		utils.LogError("Error generating access token", err)
 		return "", "", domain.ErrTokenGenerationFailed
 	}
 
@@ -33,6 +35,7 @@ func (s *JWTService) GenerateToken(user *domain.User) (string, string, *domain.C
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
 	refreshTokenString, err := refreshToken.SignedString([]byte(s.JwtSecret))
 	if err != nil {
+		utils.LogError("Error generating refresh token", err)
 		return "", "", domain.ErrRefreshTokenGenerationFailed
 	}
 	return accessTokenString, refreshTokenString, nil
@@ -46,6 +49,7 @@ func (s *JWTService) ValidateToken(token string) (*jwt.Token, *domain.CustomErro
 		return []byte(s.JwtSecret), nil
 	})
 	if err != nil {
+		utils.LogError("Error parsing token", err)
 		return nil, domain.ErrTokenParsingFailed
 	}
 	return parsedToken, nil
@@ -69,6 +73,7 @@ func (s *JWTService) GenerateResetToken(email string, code int64) (string, *doma
 	resetToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	resetTokenString, err := resetToken.SignedString([]byte(s.JwtSecret))
 	if err != nil {
+		utils.LogError("Error generating reset token", err)
 		return "", domain.ErrResetTokenGenerationFailed
 	}
 	return resetTokenString, nil

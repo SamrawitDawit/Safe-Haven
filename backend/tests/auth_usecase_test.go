@@ -47,7 +47,7 @@ func (suite *AuthUseCaseTestSuite) TestRegister_Success() {
 		Category: "general",
 		Language: "Amharic",
 	}
-	
+
 	// Expect user repo to not find an existing user by email
 	suite.mockUserRepo.On("GetUserByEmail", registerDTO.Email).Return(nil, domain.ErrUserNotFound)
 
@@ -165,12 +165,13 @@ func (suite *AuthUseCaseTestSuite) TestLogin_Success() {
 	suite.mockEncryptService.On("Encrypt", mock.Anything).Return("encrypted", nil)
 
 	// Act
-	accessToken, refreshToken, err := suite.authUseCase.Login(loginDTO)
+	user, accessToken, refreshToken, err := suite.authUseCase.Login(loginDTO)
 
 	// Assert
 	suite.Nil(err)
 	suite.Equal("access_token", accessToken)
 	suite.Equal("refresh_token", refreshToken)
+	suite.NotNil(user)
 }
 
 func (suite *AuthUseCaseTestSuite) TestLogin_UserNotFoundByEmail_Failure() {
@@ -184,7 +185,7 @@ func (suite *AuthUseCaseTestSuite) TestLogin_UserNotFoundByEmail_Failure() {
 	suite.mockUserRepo.On("GetUserByEmail", loginDTO.Email).Return(nil, domain.ErrUserNotFound)
 
 	// Act
-	_, _, err := suite.authUseCase.Login(loginDTO)
+	_, _, _, err := suite.authUseCase.Login(loginDTO)
 
 	// Assert
 	suite.Equal(err, domain.ErrUserNotFound)
@@ -208,7 +209,7 @@ func (suite *AuthUseCaseTestSuite) TestLogin_InvalidPassword_Failure() {
 	suite.mockHashingService.On("CheckHash", loginDTO.Password, user.Password).Return(domain.ErrInvalidCredentials)
 
 	// Act
-	_, _, err := suite.authUseCase.Login(loginDTO)
+	_, _, _, err := suite.authUseCase.Login(loginDTO)
 
 	// Assert
 	suite.Equal(err, domain.ErrInvalidCredentials)
@@ -230,7 +231,7 @@ func (suite *AuthUseCaseTestSuite) TestLogin_GoogleSigninAttemptedNormalLogin_Fa
 	suite.mockUserRepo.On("GetUserByEmail", loginDTO.Email).Return(user, nil)
 
 	// Act
-	_, _, err := suite.authUseCase.Login(loginDTO)
+	_, _, _, err := suite.authUseCase.Login(loginDTO)
 
 	// Assert
 	suite.Equal(err, domain.ErrInvalidCredentials)
@@ -287,7 +288,7 @@ func (suite *AuthUseCaseTestSuite) TestRefreshToken_Success() {
 	suite.mockJwtService.On("ValidateToken", user.RefreshToken).Return(validToken, nil)
 	suite.mockJwtService.On("GenerateToken", user).Return("access_token", "refresh_token", nil)
 	suite.mockUserRepo.On("UpdateUserFields", mock.AnythingOfType("uuid.UUID"), mock.AnythingOfType("map[string]interface {}")).Return(nil)
-	suite.mockUserRepo.On("GetUserByIDWithLock",user.ID).Return(user, nil)
+	suite.mockUserRepo.On("GetUserByIDWithLock", user.ID).Return(user, nil)
 	suite.mockEncryptService.On("Decrypt", "valid_refresh_token").Return("valid_refresh_token", nil)
 	suite.mockEncryptService.On("Encrypt", mock.AnythingOfType("string")).Return("new_refresh_token", nil)
 
@@ -327,7 +328,7 @@ func (suite *AuthUseCaseTestSuite) TestRefreshToken_TokenMismatch_Failure() {
 	suite.mockJwtService.On("ExtractTokenClaims", validToken).Return(jwt.MapClaims{"id": user.ID.String()}, nil)
 	suite.mockUserRepo.On("GetUserByID", user.ID).Return(user, nil)
 	suite.mockJwtService.On("ValidateToken", user.RefreshToken).Return(validToken, nil)
-	suite.mockUserRepo.On("GetUserByIDWithLock",user.ID).Return(user, nil)
+	suite.mockUserRepo.On("GetUserByIDWithLock", user.ID).Return(user, nil)
 	suite.mockUserRepo.On("UpdateUserFields", mock.AnythingOfType("uuid.UUID"), mock.AnythingOfType("map[string]interface {}")).Return(nil)
 	suite.mockEncryptService.On("Decrypt", "different_token").Return("invalid_refresh_token", nil)
 
@@ -363,7 +364,6 @@ func (suite *AuthUseCaseTestSuite) TestResetPassword_Success() {
 	suite.mockEncryptService.On("Decrypt", "1234").Return(1234, nil)
 	suite.mockEncryptService.On("Decrypt", "valid_token").Return("valid_token", nil)
 	suite.mockUserRepo.On("UpdateUserFields", mock.AnythingOfType("uuid.UUID"), mock.AnythingOfType("map[string]interface {}")).Return(nil)
-
 
 	// Act
 	err := suite.authUseCase.ResetPassword(token, newPassword)
@@ -460,7 +460,7 @@ func (suite *AuthUseCaseTestSuite) TestHandleGoogleCallback_UserExists_NonGoogle
 	suite.mockUserRepo.On("GetUserByEmail", user.Email).Return(user, nil)
 
 	// Act
-	_, _, err := suite.authUseCase.HandleGoogleCallback(user)
+	_, _, _, err := suite.authUseCase.HandleGoogleCallback(user)
 
 	// Assert
 	suite.Equal(err, domain.ErrUserEmailExists)
@@ -479,10 +479,11 @@ func (suite *AuthUseCaseTestSuite) TestHandleGoogleCallback_UserExists_GoogleSig
 	suite.mockEncryptService.On("Encrypt", mock.Anything).Return("encrypted", nil)
 
 	// Act
-	accessToken, refreshToken, err := suite.authUseCase.HandleGoogleCallback(user)
+	returned_user, accessToken, refreshToken, err := suite.authUseCase.HandleGoogleCallback(user)
 
 	// Assert
 	suite.Nil(err)
+	suite.NotNil(returned_user)
 	suite.Equal("access_token", accessToken)
 	suite.Equal("refresh_token", refreshToken)
 }
@@ -499,12 +500,12 @@ func (suite *AuthUseCaseTestSuite) TestHandleGoogleCallback_NewUser_Success() {
 	suite.mockEncryptService.On("Encrypt", mock.Anything).Return("encrypted", nil)
 	suite.mockUserRepo.On("UpdateUserFields", mock.AnythingOfType("uuid.UUID"), mock.AnythingOfType("map[string]interface {}")).Return(nil)
 
-
 	// Act
-	accessToken, refreshToken, err := suite.authUseCase.HandleGoogleCallback(user)
+	returned_user, accessToken, refreshToken, err := suite.authUseCase.HandleGoogleCallback(user)
 
 	// Assert
 	suite.Nil(err)
+	suite.NotNil(returned_user)
 	suite.Equal("access_token", accessToken)
 	suite.Equal("refresh_token", refreshToken)
 }
@@ -519,7 +520,7 @@ func (suite *AuthUseCaseTestSuite) TestHandleGoogleCallback_GenerateTokenFailure
 	suite.mockJwtService.On("GenerateToken", user).Return("", "", domain.ErrTokenGenerationFailed)
 
 	// Act
-	_, _, err := suite.authUseCase.HandleGoogleCallback(user)
+	_, _, _, err := suite.authUseCase.HandleGoogleCallback(user)
 
 	// Assert
 	suite.Equal(err, domain.ErrTokenGenerationFailed)
@@ -539,10 +540,11 @@ func (suite *AuthUseCaseTestSuite) TestHandleGoogleCallback_Success() {
 	suite.mockUserRepo.On("CreateUser", mock.Anything).Return(nil)
 
 	// Act
-	accessToken, refreshToken, err := suite.authUseCase.HandleGoogleCallback(user)
+	returned_user, accessToken, refreshToken, err := suite.authUseCase.HandleGoogleCallback(user)
 
 	// Assert
 	suite.Nil(err)
+	suite.NotNil(returned_user)
 	suite.Equal("access_token", accessToken)
 	suite.Equal("refresh_token", refreshToken)
 }
