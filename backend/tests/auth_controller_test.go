@@ -17,7 +17,6 @@ import (
 
 	// "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
-	"golang.org/x/oauth2"
 )
 
 type AuthControllerTestSuite struct {
@@ -25,14 +24,12 @@ type AuthControllerTestSuite struct {
 	mockUsecase  *mocks.AuthUseCaseInterface
 	controller   *controllers.AuthController
 	recorder     *httptest.ResponseRecorder
-	googleConfig *oauth2.Config
 }
 
 func (suite *AuthControllerTestSuite) SetupTest() {
 	suite.mockUsecase = new(mocks.AuthUseCaseInterface)
 	suite.recorder = httptest.NewRecorder()
-	suite.googleConfig = &oauth2.Config{} // Mock or setup a minimal OAuth2 config if needed
-	suite.controller = controllers.NewAuthController(suite.mockUsecase, suite.googleConfig)
+	suite.controller = controllers.NewAuthController(suite.mockUsecase)
 
 	// Set Gin mode to TestMode to avoid debug output during tests
 	gin.SetMode(gin.TestMode)
@@ -113,7 +110,7 @@ func (suite *AuthControllerTestSuite) TestLogin_Success() {
 	acToken := "access-token"
 	refToken := "refresh-token"
 
-	suite.mockUsecase.On("Login", loginDTO).Return(acToken, refToken, nil)
+	suite.mockUsecase.On("Login", loginDTO).Return(&domain.User{}, acToken, refToken, nil)
 	body, _ := json.Marshal(loginDTO)
 	req, _ := http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -150,7 +147,7 @@ func (suite *AuthControllerTestSuite) TestLogin_Failure() {
 		Email:    "test@example.com",
 		Password: "password123",
 	}
-	suite.mockUsecase.On("Login", loginDTO).Return("", "", domain.ErrInvalidCredentials)
+	suite.mockUsecase.On("Login", loginDTO).Return(nil, "", "", domain.ErrInvalidCredentials)
 	body, _ := json.Marshal(loginDTO)
 	req, _ := http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")

@@ -62,3 +62,12 @@ var (
 	ErrEncryptionFailed = NewCustomError("Failed to encrypt data", http.StatusInternalServerError)
 	ErrDecryptionFailed = NewCustomError("Failed to decrypt data", http.StatusInternalServerError)
 )
+
+// Case-related errors
+var (
+	ErrCaseNotFound              = NewCustomError("Case not found", http.StatusNotFound)
+	ErrCaseCreationFailed        = NewCustomError("Failed to create Case", http.StatusInternalServerError)
+	ErrCaseUpdateFailed          = NewCustomError("Failed to update Case", http.StatusInternalServerError)
+	ErrCaseFetchFailed           = NewCustomError("Failed to fetch Cases", http.StatusInternalServerError)
+	ErrIncompleteCaseInformation = NewCustomError("Incomplete Case Information", http.StatusBadRequest)
+)
