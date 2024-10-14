@@ -39,42 +39,39 @@ func validateCaseDto(CaseDto dto.CaseDto) *domain.CustomError {
 	return nil
 }
 
+func (r *CaseUseCase) decryptField(field string) (string, *domain.CustomError) {
+	if field != "" {
+		decryptedField, err := r.EncrypService.Decrypt(field)
+		if err != nil {
+			return "", err
+		}
+		return decryptedField, nil
+	}
+	return field, nil
+}
+
 func (r *CaseUseCase) decrypt(Cases []*domain.Case) ([]*domain.Case, *domain.CustomError) {
+	var err *domain.CustomError
 	for _, Case := range Cases {
-		if Case.Title != "" {
-			encryptedTitle, err := r.EncrypService.Decrypt(Case.Title)
-			if err != nil {
-				return nil, err
-			}
-			Case.Title = encryptedTitle
+		Case.Title, err = r.decryptField(Case.Title)
+		if err != nil {
+			return nil, err
 		}
-		if Case.Description != "" {
-			encryptedDesc, err := r.EncrypService.Decrypt(Case.Description)
-			if err != nil {
-				return nil, err
-			}
-			Case.Description = encryptedDesc
+		Case.Description, err = r.decryptField(Case.Description)
+		if err != nil {
+			return nil, err
 		}
-		if Case.ImageURL != "" {
-			encryptedURL, err := r.EncrypService.Decrypt(Case.ImageURL)
-			if err != nil {
-				return nil, err
-			}
-			Case.ImageURL = encryptedURL
+		Case.ImageURL, err = r.decryptField(Case.ImageURL)
+		if err != nil {
+			return nil, err
 		}
-		if Case.VideoURL != "" {
-			encryptedURL, err := r.EncrypService.Decrypt(Case.VideoURL)
-			if err != nil {
-				return nil, err
-			}
-			Case.VideoURL = encryptedURL
+		Case.VideoURL, err = r.decryptField(Case.VideoURL)
+		if err != nil {
+			return nil, err
 		}
-		if Case.Location != "" {
-			encryptedLoc, err := r.EncrypService.Decrypt(Case.Location)
-			if err != nil {
-				return nil, err
-			}
-			Case.Location = encryptedLoc
+		Case.Location, err = r.decryptField(Case.Location)
+		if err != nil {
+			return nil, err
 		}
 	}
 	return Cases, nil
