@@ -11,6 +11,9 @@ import (
 )
 
 type CaseUseCaseInterface interface {
+	ValidateCaseDto(CaseDto dto.CaseDto) *domain.CustomError
+	DecryptField(field string) (string, *domain.CustomError)
+	Decrypt(Cases []*domain.Case) ([]*domain.Case, *domain.CustomError)
 	CreateCase(CaseDto dto.CaseDto) (*domain.Case, *domain.CustomError)
 	UpdateCase(caseID uuid.UUID, CaseDto dto.CaseDto) *domain.CustomError
 	GetCaseByID(CaseID uuid.UUID) (*domain.Case, *domain.CustomError)
@@ -32,14 +35,14 @@ func NewCaseUseCase(CaseRepo interfaces.CaseRepositoryInterface, encryptService 
 	}
 }
 
-func validateCaseDto(CaseDto dto.CaseDto) *domain.CustomError {
+func (r *CaseUseCase) ValidateCaseDto(CaseDto dto.CaseDto) *domain.CustomError {
 	if CaseDto.Description == "" && CaseDto.ImageURL == "" {
 		return domain.ErrIncompleteCaseInformation
 	}
 	return nil
 }
 
-func (r *CaseUseCase) decryptField(field string) (string, *domain.CustomError) {
+func (r *CaseUseCase) DecryptField(field string) (string, *domain.CustomError) {
 	if field != "" {
 		decryptedField, err := r.EncrypService.Decrypt(field)
 		if err != nil {
@@ -50,26 +53,26 @@ func (r *CaseUseCase) decryptField(field string) (string, *domain.CustomError) {
 	return field, nil
 }
 
-func (r *CaseUseCase) decrypt(Cases []*domain.Case) ([]*domain.Case, *domain.CustomError) {
+func (r *CaseUseCase) Decrypt(Cases []*domain.Case) ([]*domain.Case, *domain.CustomError) {
 	var err *domain.CustomError
 	for _, Case := range Cases {
-		Case.Title, err = r.decryptField(Case.Title)
+		Case.Title, err = r.DecryptField(Case.Title)
 		if err != nil {
 			return nil, err
 		}
-		Case.Description, err = r.decryptField(Case.Description)
+		Case.Description, err = r.DecryptField(Case.Description)
 		if err != nil {
 			return nil, err
 		}
-		Case.ImageURL, err = r.decryptField(Case.ImageURL)
+		Case.ImageURL, err = r.DecryptField(Case.ImageURL)
 		if err != nil {
 			return nil, err
 		}
-		Case.VideoURL, err = r.decryptField(Case.VideoURL)
+		Case.VideoURL, err = r.DecryptField(Case.VideoURL)
 		if err != nil {
 			return nil, err
 		}
-		Case.Location, err = r.decryptField(Case.Location)
+		Case.Location, err = r.DecryptField(Case.Location)
 		if err != nil {
 			return nil, err
 		}
@@ -78,7 +81,7 @@ func (r *CaseUseCase) decrypt(Cases []*domain.Case) ([]*domain.Case, *domain.Cus
 }
 
 func (r *CaseUseCase) CreateCase(CaseDto dto.CaseDto) (*domain.Case, *domain.CustomError) {
-	err := validateCaseDto(CaseDto)
+	err := r.ValidateCaseDto(CaseDto)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +152,7 @@ func (r *CaseUseCase) GetAllCases() ([]*domain.Case, *domain.CustomError) {
 	if err != nil {
 		return nil, err
 	}
-	decryptedCases, err := r.decrypt(Cases)
+	decryptedCases, err := r.Decrypt(Cases)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +164,7 @@ func (r *CaseUseCase) GetCaseByID(CaseID uuid.UUID) (*domain.Case, *domain.Custo
 	if err != nil {
 		return nil, err
 	}
-	decryptedCases, err := r.decrypt([]*domain.Case{Case})
+	decryptedCases, err := r.Decrypt([]*domain.Case{Case})
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +176,7 @@ func (r *CaseUseCase) GetCasesByCounselorID(counselorID uuid.UUID) ([]*domain.Ca
 	if err != nil {
 		return nil, err
 	}
-	decryptedCases, err := r.decrypt(Case)
+	decryptedCases, err := r.Decrypt(Case)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +188,7 @@ func (r *CaseUseCase) GetCasesBySubmitterID(SubmitterID uuid.UUID) ([]*domain.Ca
 	if err != nil {
 		return nil, err
 	}
-	decryptedCases, err := r.decrypt(Case)
+	decryptedCases, err := r.Decrypt(Case)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +200,7 @@ func (r *CaseUseCase) GetCasesByStatus(status string) ([]*domain.Case, *domain.C
 	if err != nil {
 		return nil, err
 	}
-	decryptedCases, err := r.decrypt(Case)
+	decryptedCases, err := r.Decrypt(Case)
 	if err != nil {
 		return nil, err
 	}

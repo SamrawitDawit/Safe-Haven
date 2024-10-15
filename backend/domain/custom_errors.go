@@ -70,4 +70,5 @@ var (
 	ErrCaseUpdateFailed          = NewCustomError("Failed to update Case", http.StatusInternalServerError)
 	ErrCaseFetchFailed           = NewCustomError("Failed to fetch Cases", http.StatusInternalServerError)
 	ErrIncompleteCaseInformation = NewCustomError("Incomplete Case Information", http.StatusBadRequest)
+	ErrCaseDeletionFailed        = NewCustomError("Failed to delete Case", http.StatusInternalServerError)
 )
