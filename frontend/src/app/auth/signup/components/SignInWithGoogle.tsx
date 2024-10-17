@@ -1,28 +1,18 @@
-import { useState } from "react";
+
+import { useRouter } from "next/navigation";
+
 
 const SignInButton = () => {
-  const [user, setUser] = useState(null);
 
+  const router = useRouter();
+
+  
   const handleGoogleSignIn = async () => {
     try {
-      const response = await fetch("http://localhost:8080/auth/google", {
-        method: "GET",
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-
-        localStorage.setItem("accessToken", data.data.accessToken);
-        localStorage.setItem("refreshToken", data.data.refreshToken);
-
-        setUser(data.data.user);
-
-        window.location.href = "/";
-      } else {
-        console.error("Google login failed:", response.statusText);
-      }
+      // Redirect to backend's Google Login endpoint
+      window.location.href = "http://localhost:8080/auth/google";
     } catch (error) {
-      console.error("Error during Google login:", error);
+      console.error("Google Sign-In failed:", error);
     }
   };
 
@@ -38,5 +28,6 @@ const SignInButton = () => {
     </div>
   );
 };
+
 
 export default SignInButton;
