@@ -196,6 +196,10 @@ func (ctrl *AuthController) HandleGoogleCallback(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, res)
 		return
 	}
+	if client_type == "mobile" {
+		c.JSON(http.StatusOK, utils.SuccessResponse(http.StatusOK, "Google login successful", map[string]interface{}{"user": user, "accessToken": accessToken, "refreshToken": refreshToken}))
+		return
+	}
 	c.SetCookie("access_token", accessToken, 3600, "/", "localhost", true, true) // Secure, HttpOnly, SameSite=Lax
 	c.SetCookie("refresh_token", refreshToken, 7200, "/", "localhost", true, true)
 	c.Redirect(http.StatusFound, "http://localhost:3000/auth/dummy-dashboard?accessToken="+accessToken+"&refreshToken="+refreshToken+"&user="+string(user.ID.String()))
