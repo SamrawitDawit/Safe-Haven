@@ -1,9 +1,12 @@
 package controllers
 
 import (
+	"backend/delivery/config"
+	"backend/infrastructure"
 	"backend/usecases"
 	"backend/usecases/dto"
 	"backend/utils"
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -27,6 +30,28 @@ func (ctrl *CaseController) CreateCase(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
+
+	token := c.GetHeader("recaptcha-token")
+	recaptchaAction := "submit_case"       
+
+	projectID := config.ENV.PROJECT_ID
+	recaptchaKey := config.ENV.RECAPTCHA_KEY
+
+	
+	ctx := context.Background()
+	score, err := infrastructure.CreateAssessment(ctx, projectID, recaptchaKey, token, recaptchaAction)
+	if err != nil {
+		res := utils.ErrorResponse(http.StatusBadRequest, "reCAPTCHA verification failed", err.Error())
+		c.JSON(http.StatusBadRequest, res)
+		return
+	}
+
+	if score < 0.5 {
+		res := utils.ErrorResponse(http.StatusForbidden, "Suspicious activity detected", "reCAPTCHA score too low")
+		c.JSON(http.StatusForbidden, res)
+		return
+	}
+
 	created_Case, cerr := ctrl.CaseUsecase.CreateCase(createCaseDto)
 	if cerr != nil {
 		res := utils.ErrorResponse(cerr.StatusCode, "Case submission failed", cerr.Message)
