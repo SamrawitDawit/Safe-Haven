@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"backend/delivery/config"
 	"context"
 	"fmt"
 
@@ -8,9 +9,13 @@ import (
 	recaptchapb "cloud.google.com/go/recaptchaenterprise/v2/apiv1/recaptchaenterprisepb"
 )
 
+type RecaptchaService struct{}
 
-func CreateAssessment(ctx context.Context, projectID string, recaptchaKey string, token string, recaptchaAction string) (float32, error) {
-	
+func (r *RecaptchaService) CreateAssessment(token string) (float32, error) {
+	projectID := config.ENV.PROJECT_ID
+	recaptchaKey := config.ENV.RECAPTCHA_KEY
+	recaptchaAction := config.ENV.RECAPTCHA_ACTION
+	ctx := context.Background()
 	client, err := recaptcha.NewClient(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("error creating reCAPTCHA client: %v", err)

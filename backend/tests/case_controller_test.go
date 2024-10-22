@@ -18,15 +18,17 @@ import (
 
 type CaseControllerTestSuite struct {
 	suite.Suite
-	mockUsecase *mocks.CaseUseCaseInterface
-	controller  *controllers.CaseController
-	recorder    *httptest.ResponseRecorder
+	mockUsecase   *mocks.CaseUseCaseInterface
+	mockRecaptcha *mocks.RecaptchaInterface
+	controller    *controllers.CaseController
+	recorder      *httptest.ResponseRecorder
 }
 
 func (suite *CaseControllerTestSuite) SetupTest() {
 	suite.mockUsecase = new(mocks.CaseUseCaseInterface)
+	suite.mockRecaptcha = new(mocks.RecaptchaInterface)
 	suite.recorder = httptest.NewRecorder()
-	suite.controller = controllers.NewCaseController(suite.mockUsecase)
+	suite.controller = controllers.NewCaseController(suite.mockUsecase, suite.mockRecaptcha)
 }
 
 func (suite *CaseControllerTestSuite) TearDownTest() {
@@ -50,14 +52,15 @@ func (suite *CaseControllerTestSuite) TestCreateCase_Success() {
 		SubmitterID: uuid.New(),
 	}
 
+	suite.mockRecaptcha.On("CreateAssessment", "test_token").Return(float32(0.5), nil)
 	suite.mockUsecase.On("CreateCase", createCaseDto).Return(createdCase, nil)
 	body, _ := json.Marshal(createCaseDto)
 	req, _ := http.NewRequest(http.MethodPost, "/submit", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("recaptcha-token", "test_token")
 
 	c, _ := gin.CreateTestContext(suite.recorder)
 	c.Request = req
-
 	suite.controller.CreateCase(c)
 
 	suite.Equal(http.StatusCreated, suite.recorder.Code)
@@ -69,11 +72,12 @@ func (suite *CaseControllerTestSuite) TestCreateCase_Fail() {
 	createCaseDto := dto.CaseDto{
 		SubmitterID: uuid.New(),
 	}
-
+	suite.mockRecaptcha.On("CreateAssessment", "test_token").Return(float32(0.5), nil)
 	suite.mockUsecase.On("CreateCase", createCaseDto).Return(nil, domain.ErrIncompleteCaseInformation)
 	body, _ := json.Marshal(createCaseDto)
 	req, _ := http.NewRequest(http.MethodPost, "/submit", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("recaptcha-token", "test_token")
 
 	c, _ := gin.CreateTestContext(suite.recorder)
 	c.Request = req
@@ -88,7 +92,7 @@ func (suite *CaseControllerTestSuite) TestUpdateCase_Success() {
 	// Arrange
 	caseID := uuid.New()
 	updateCaseDto := dto.CaseDto{
-		Title:       "Test Case",
+		Title: "Test Case",
 	}
 
 	suite.mockUsecase.On("UpdateCase", caseID, updateCaseDto).Return(nil)
@@ -99,9 +103,8 @@ func (suite *CaseControllerTestSuite) TestUpdateCase_Success() {
 	c, _ := gin.CreateTestContext(suite.recorder)
 	c.Request = req
 	c.Params = gin.Params{
-		gin.Param{Key: "case_id", Value: caseID.String()}, 
+		gin.Param{Key: "case_id", Value: caseID.String()},
 	}
-
 
 	suite.controller.UpdateCase(c)
 
@@ -127,9 +130,8 @@ func (suite *CaseControllerTestSuite) TestUpdateCase_Fail() {
 	c, _ := gin.CreateTestContext(suite.recorder)
 	c.Request = req
 	c.Params = gin.Params{
-		gin.Param{Key: "case_id", Value: caseID.String()}, 
+		gin.Param{Key: "case_id", Value: caseID.String()},
 	}
-
 
 	suite.controller.UpdateCase(c)
 
@@ -154,9 +156,8 @@ func (suite *CaseControllerTestSuite) TestGetCaseByID_Success() {
 	c, _ := gin.CreateTestContext(suite.recorder)
 	c.Request = req
 	c.Params = gin.Params{
-		gin.Param{Key: "case_id", Value: caseID.String()}, 
+		gin.Param{Key: "case_id", Value: caseID.String()},
 	}
-
 
 	suite.controller.GetCaseByID(c)
 
@@ -174,9 +175,8 @@ func (suite *CaseControllerTestSuite) TestGetCaseByID_Fail() {
 	c, _ := gin.CreateTestContext(suite.recorder)
 	c.Request = req
 	c.Params = gin.Params{
-		gin.Param{Key: "case_id", Value: caseID.String()}, 
+		gin.Param{Key: "case_id", Value: caseID.String()},
 	}
-
 
 	suite.controller.GetCaseByID(c)
 
@@ -203,16 +203,14 @@ func (suite *CaseControllerTestSuite) TestGetCasesBySubmitterID_Success() {
 	c, _ := gin.CreateTestContext(suite.recorder)
 	c.Request = req
 	c.Params = gin.Params{
-		gin.Param{Key: "submitter_id", Value: submitterID.String()}, 
+		gin.Param{Key: "submitter_id", Value: submitterID.String()},
 	}
-
 
 	suite.controller.GetCasesBySubmitterID(c)
 
 	suite.Equal(http.StatusOK, suite.recorder.Code)
 	suite.Contains(suite.recorder.Body.String(), "Case fetch successful")
 }
-
 
 func (suite *CaseControllerTestSuite) TestGetCasesBySubmitterID_Fail() {
 	// Arrange
@@ -224,7 +222,7 @@ func (suite *CaseControllerTestSuite) TestGetCasesBySubmitterID_Fail() {
 	c, _ := gin.CreateTestContext(suite.recorder)
 	c.Request = req
 	c.Params = gin.Params{
-		gin.Param{Key: "submitter_id", Value: submitterID.String()}, 
+		gin.Param{Key: "submitter_id", Value: submitterID.String()},
 	}
 
 	suite.controller.GetCasesBySubmitterID(c)
@@ -234,7 +232,7 @@ func (suite *CaseControllerTestSuite) TestGetCasesBySubmitterID_Fail() {
 }
 
 func (suite *CaseControllerTestSuite) TestGetCasesByCounselorID_Success() {
-	
+
 	// Arrange
 	counselorID := uuid.New()
 	caseData := []*domain.Case{
@@ -249,7 +247,7 @@ func (suite *CaseControllerTestSuite) TestGetCasesByCounselorID_Success() {
 
 	suite.mockUsecase.On("GetCasesByCounselorID", counselorID).Return(caseData, nil)
 	req, _ := http.NewRequest(http.MethodGet, "/counselor/"+counselorID.String(), nil)
-	
+
 	c, _ := gin.CreateTestContext(suite.recorder)
 	c.Request = req
 	c.Params = gin.Params{
@@ -257,7 +255,7 @@ func (suite *CaseControllerTestSuite) TestGetCasesByCounselorID_Success() {
 	}
 
 	suite.controller.GetCasesByCounselorID(c)
-	
+
 	suite.Equal(http.StatusOK, suite.recorder.Code)
 	suite.Contains(suite.recorder.Body.String(), "Case fetch successful")
 }
@@ -272,7 +270,7 @@ func (suite *CaseControllerTestSuite) TestGetCasesByCounselorID_Fail() {
 	c, _ := gin.CreateTestContext(suite.recorder)
 	c.Request = req
 	c.Params = gin.Params{
-		gin.Param{Key: "counselor_id", Value: counselorID.String()}, 
+		gin.Param{Key: "counselor_id", Value: counselorID.String()},
 	}
 
 	suite.controller.GetCasesByCounselorID(c)
@@ -296,15 +294,15 @@ func (suite *CaseControllerTestSuite) TestGetCasesByStatus_Success() {
 
 	suite.mockUsecase.On("GetCasesByStatus", status).Return(caseData, nil)
 	req, _ := http.NewRequest(http.MethodGet, "/status/"+status, nil)
-	
+
 	c, _ := gin.CreateTestContext(suite.recorder)
 	c.Request = req
 	c.Params = gin.Params{
-		gin.Param{Key: "status", Value: status}, 
+		gin.Param{Key: "status", Value: status},
 	}
 
 	suite.controller.GetCasesByStatus(c)
-	
+
 	suite.Equal(http.StatusOK, suite.recorder.Code)
 	suite.Contains(suite.recorder.Body.String(), "Case fetch successful")
 }
@@ -319,7 +317,7 @@ func (suite *CaseControllerTestSuite) TestGetCasesByStatus_Fail() {
 	c, _ := gin.CreateTestContext(suite.recorder)
 	c.Request = req
 	c.Params = gin.Params{
-		gin.Param{Key: "status", Value: status}, 
+		gin.Param{Key: "status", Value: status},
 	}
 
 	suite.controller.GetCasesByStatus(c)
@@ -337,7 +335,6 @@ func (suite *CaseControllerTestSuite) TestGetAllCases_Success() {
 			Description: "This is a test case",
 			ImageURL:    "https://example.com/image.jpg",
 			SubmitterID: uuid.New(),
-
 		},
 	}
 
@@ -346,9 +343,9 @@ func (suite *CaseControllerTestSuite) TestGetAllCases_Success() {
 
 	c, _ := gin.CreateTestContext(suite.recorder)
 	c.Request = req
-	
+
 	suite.controller.GetAllCases(c)
-	
+
 	suite.Equal(http.StatusOK, suite.recorder.Code)
 	suite.Contains(suite.recorder.Body.String(), "Case fetch successful")
 }
@@ -377,7 +374,7 @@ func (suite *CaseControllerTestSuite) TestDeleteCase_Success() {
 	c, _ := gin.CreateTestContext(suite.recorder)
 	c.Request = req
 	c.Params = gin.Params{
-		gin.Param{Key: "case_id", Value: caseID.String()}, 
+		gin.Param{Key: "case_id", Value: caseID.String()},
 	}
 
 	suite.controller.DeleteCase(c)
@@ -396,7 +393,7 @@ func (suite *CaseControllerTestSuite) TestDeleteCase_Fail() {
 	c, _ := gin.CreateTestContext(suite.recorder)
 	c.Request = req
 	c.Params = gin.Params{
-		gin.Param{Key: "case_id", Value: caseID.String()}, 
+		gin.Param{Key: "case_id", Value: caseID.String()},
 	}
 
 	suite.controller.DeleteCase(c)
@@ -404,8 +401,6 @@ func (suite *CaseControllerTestSuite) TestDeleteCase_Fail() {
 	suite.Equal(http.StatusInternalServerError, suite.recorder.Code)
 	suite.Contains(suite.recorder.Body.String(), "Case deletion failed")
 }
-
-
 
 func TestCaseControllerTestSuite(t *testing.T) {
 	suite.Run(t, new(CaseControllerTestSuite))

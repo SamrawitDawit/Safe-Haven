@@ -1,12 +1,10 @@
 package controllers
 
 import (
-	"backend/delivery/config"
-	"backend/infrastructure"
 	"backend/usecases"
 	"backend/usecases/dto"
+	"backend/usecases/interfaces"
 	"backend/utils"
-	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -15,11 +13,13 @@ import (
 
 type CaseController struct {
 	CaseUsecase usecases.CaseUseCaseInterface
+	Recaptcha   interfaces.RecaptchaInterface
 }
 
-func NewCaseController(CaseUsecase usecases.CaseUseCaseInterface) *CaseController {
+func NewCaseController(CaseUsecase usecases.CaseUseCaseInterface, recaptcha interfaces.RecaptchaInterface) *CaseController {
 	return &CaseController{
 		CaseUsecase: CaseUsecase,
+		Recaptcha:   recaptcha,
 	}
 }
 
@@ -32,14 +32,8 @@ func (ctrl *CaseController) CreateCase(c *gin.Context) {
 	}
 
 	token := c.GetHeader("recaptcha-token")
-	recaptchaAction := "submit_case"       
 
-	projectID := config.ENV.PROJECT_ID
-	recaptchaKey := config.ENV.RECAPTCHA_KEY
-
-	
-	ctx := context.Background()
-	score, err := infrastructure.CreateAssessment(ctx, projectID, recaptchaKey, token, recaptchaAction)
+	score, err := ctrl.Recaptcha.CreateAssessment(token)
 	if err != nil {
 		res := utils.ErrorResponse(http.StatusBadRequest, "reCAPTCHA verification failed", err.Error())
 		c.JSON(http.StatusBadRequest, res)

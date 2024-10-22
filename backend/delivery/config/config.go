@@ -28,6 +28,7 @@ type EnvironmentVariables struct {
 	ENCRYPT_KEY          string
 	PROJECT_ID           string
 	RECAPTCHA_KEY        string
+	RECAPTCHA_ACTION     string
 }
 
 var ENV EnvironmentVariables
@@ -53,6 +54,7 @@ func LoadEnv() error {
 	ENV.ENCRYPT_KEY = os.Getenv("ENCRYPT_KEY")
 	ENV.PROJECT_ID = os.Getenv("PROJECT_ID")
 	ENV.RECAPTCHA_KEY = os.Getenv("RECAPTCHA_KEY")
+	ENV.RECAPTCHA_ACTION = os.Getenv("RECAPTCHA_ACTION")
 
 	v := reflect.ValueOf(ENV)
 	typeOfEnv := v.Type()

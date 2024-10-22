@@ -36,12 +36,13 @@ func main() {
 		Password: config.ENV.EMAIL_PASSWORD,
 		Email:    config.ENV.EMAIL,
 	}
+	recaptchaService := infrastructure.RecaptchaService{}
 	userRepo := repositories.NewUserRepo(db, config.ENV.USER_COLLECTION)
 	caseRepo := repositories.NewCaseRepo(db, config.ENV.CASE_COLLECTION)
 	authUsecase := usecases.NewAuthUseCase(userRepo, &jwtService, &emailService, &pwdService, &encryptService)
 	caseUsecase := usecases.NewCaseUseCase(caseRepo, &encryptService)
 	authController := controllers.NewAuthController(authUsecase)
-	caseController := controllers.NewCaseController(caseUsecase)
+	caseController := controllers.NewCaseController(caseUsecase, &recaptchaService)
 
 	router.NewRouter(
 		&router.RouterControllers{
