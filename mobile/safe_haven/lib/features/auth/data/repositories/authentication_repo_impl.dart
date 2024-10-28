@@ -30,8 +30,12 @@ class AuthenticationRepoImpl implements AuthenticationRepository {
         print('hello');
         final result =
             await remoteDataSource.login(LogInModel.toModel(logInEntity));
+
         try {
-          await localDataSource.cacheTokens(result.token, result.refreshToken);
+          print(result.accessToken);
+          await localDataSource.cacheTokens(
+              result.accessToken, result.refreshToken);
+          await localDataSource.storeUser(result);
         } on CacheException {
           debugPrint('Caching Token Error');
         }

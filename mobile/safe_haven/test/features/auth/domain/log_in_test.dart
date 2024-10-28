@@ -19,6 +19,8 @@ void main() {
   final testloginEnity =
       LogInEntity(password: 'password', fullName: '123', email: 'email');
 
+  // final loggedinEntity = LoggedInEntity(
+  //     language: 'lang', category: 'cat', password: 'pass', email: 'email');
   test(
       'tests the correct url is called when logging in and returns the proper logged in entity',
       () async {

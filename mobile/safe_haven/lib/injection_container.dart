@@ -12,6 +12,11 @@ import 'package:safe_haven/features/auth/domain/usecases/log_out.dart';
 import 'package:safe_haven/features/auth/domain/usecases/reset_password.dart';
 import 'package:safe_haven/features/auth/domain/usecases/sign_up.dart';
 import 'package:safe_haven/features/auth/presentation/bloc/bloc/auth_bloc_bloc.dart';
+import 'package:safe_haven/features/case/data/data_sources/local_data_source_case.dart';
+import 'package:safe_haven/features/case/data/data_sources/remote_data_source_case.dart';
+import 'package:safe_haven/features/case/data/repositories/case_repo_impl.dart';
+import 'package:safe_haven/features/case/domain/repositories/case_repository.dart';
+import 'package:safe_haven/features/case/domain/usecases/create_case.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/network/network_info.dart';
@@ -34,10 +39,16 @@ Future<void> init() async {
   sl.registerLazySingleton(
       () => GoogleSignInUseCase(authenticationRepository: sl()));
 
+  sl.registerLazySingleton(() => CreateCaseUseCase(caseRepository: sl()));
+
   //Repository
   sl.registerLazySingleton<AuthenticationRepository>(() =>
       AuthenticationRepoImpl(
           remoteDataSource: sl(), localDataSource: sl(), networkInfo: sl()));
+  sl.registerLazySingleton<CaseRepository>(() => CaseRepoImpl(
+      caseRemoteDataSource: sl(),
+      caseLocalDataSource: sl(),
+      networkInfo: sl()));
 
   // Data sources
   sl.registerLazySingleton<AuthenticationRemoteDataSource>(
@@ -45,6 +56,12 @@ Future<void> init() async {
 
   sl.registerLazySingleton<AuthenticationLocalDataSource>(
       () => AuthLocalDataSourceImpl(sharedPreferences: sl()));
+
+  sl.registerLazySingleton<CaseRemoteDataSource>(
+      () => CaseRemoteDataSourceImpl(client: sl(), sl()));
+
+  sl.registerLazySingleton<CaseLocalDataSource>(
+      () => CaseLocalDataSourceImpl(sharedPreferences: sl()));
 
   //! core
 

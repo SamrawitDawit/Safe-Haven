@@ -122,3 +122,5 @@ class GoogleSignInErrorState extends AuthBlocState {
   @override
   List<Object?> get props => [errorGoogleSignInMessage];
 }
+
+

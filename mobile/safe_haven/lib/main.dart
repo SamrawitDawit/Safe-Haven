@@ -6,6 +6,8 @@ import 'package:safe_haven/features/auth/presentation/screens/log_in.dart';
 import 'package:safe_haven/features/auth/presentation/screens/reset_password.dart';
 import 'package:safe_haven/features/auth/presentation/screens/sign_up.dart';
 import 'package:safe_haven/features/auth/presentation/screens/sign_up_Phone.dart';
+import 'package:safe_haven/features/case/presentation/bloc/case_bloc.dart';
+import 'package:safe_haven/features/case/presentation/screens/create_case_screen.dart';
 import 'package:safe_haven/injection_container.dart' as di;
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,9 +23,19 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => AuthBlocBloc(
-          sl(), sl(), sl(), sl(), sl(), sl()), // Ensure Bloc is created here
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthBlocBloc>(
+          create: (context) => AuthBlocBloc(sl(), sl(), sl(), sl(), sl(), sl()),
+        ),
+        BlocProvider<CaseBloc>(
+          create: (context) => CaseBloc(
+            sl(),
+          ),
+        ),
+        // Add more BlocProviders here as needed
+      ],
+      // Ensure Bloc is created here
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Flutter Login',
@@ -46,6 +58,13 @@ class MyApp extends StatelessWidget {
             case '/signupphone':
               return PageRouteBuilder(
                   pageBuilder: (context, _, __) => const SignUpPhonescreen());
+            case '/report':
+              return PageRouteBuilder(
+                  pageBuilder: (context, _, __) => CreateCaseScreen());
+
+            // case '/checkvideo':
+            //   return PageRouteBuilder(
+            //       pageBuilder: (context, _, __) => VideoPickerScreen());
             default:
               return null; // Handle invalid routes
           }

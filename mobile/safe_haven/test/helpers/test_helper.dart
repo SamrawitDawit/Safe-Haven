@@ -5,6 +5,7 @@ import 'package:safe_haven/core/network/network_info.dart';
 import 'package:safe_haven/features/auth/data/data_sources/local_data_source.dart';
 import 'package:safe_haven/features/auth/data/data_sources/remote_data_source.dart';
 import 'package:safe_haven/features/auth/domain/repositories/auth_repository.dart';
+import 'package:safe_haven/features/case/domain/repositories/case_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 @GenerateMocks([
@@ -15,6 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
   InternetConnectionChecker,
   SharedPreferences,
   CustomHttpClient,
+  CaseRepository
 ], customMocks: [
   MockSpec<http.Client>(as: #MockHttpClient)
 ])

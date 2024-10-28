@@ -9,12 +9,14 @@ import 'package:safe_haven/features/auth/data/models/authenticated_model.dart';
 import 'package:safe_haven/features/auth/data/models/log_in_model.dart';
 import 'package:safe_haven/features/auth/data/models/reset_password_model.dart';
 import 'package:safe_haven/features/auth/data/models/sign_up_model.dart';
+import 'package:safe_haven/features/auth/data/models/user_model.dart';
+import 'package:safe_haven/features/auth/domain/entities/user_entity.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:crypto/crypto.dart';
 
 abstract class AuthenticationRemoteDataSource {
   /// calls the http://loginendpoint
-  Future<AuthenticatedModel> login(LogInModel logInModel);
+  Future<UserModel> login(LogInModel logInModel);
 
   /// calls the http://signupendpoint
   Future<Unit> signup(SignUpModel signUpModel);
@@ -35,7 +37,7 @@ class AuthRemoteDataSourceImpl extends AuthenticationRemoteDataSource {
   AuthRemoteDataSourceImpl({required this.client});
 
   @override
-  Future<AuthenticatedModel> login(LogInModel logInModel) async {
+  Future<UserModel> login(LogInModel logInModel) async {
     var uri = Uri.parse('${Urls.authUrl}/login');
     print(logInModel.toJson());
     print('exi dersual atleast in the login api');
@@ -54,7 +56,8 @@ class AuthRemoteDataSourceImpl extends AuthenticationRemoteDataSource {
           'lets print first',
         );
         print(AuthenticatedModel.fromJson(json.decode(response.body)['data']));
-        return AuthenticatedModel.fromJson(json.decode(response.body)['data']);
+        print(response.body);
+        return UserModel.fromJson(json.decode(response.body)['data']);
       } else if (response.statusCode == 500) {
         print('There was no email associated with this account');
       }

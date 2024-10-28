@@ -27,6 +27,7 @@ class _LogInScreen extends State<LogInscreen> {
             content: const Text('Successfully logged in (in the ui)'),
             backgroundColor: Theme.of(context).primaryColor,
           ));
+          Navigator.pushNamed(context, '/report');
         } else if (state is LoggInError) {
           if (!context.mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -60,8 +61,7 @@ class _LogInScreen extends State<LogInscreen> {
                         onPressed: () {
                           context.read<AuthBlocBloc>().add(LoginEvent(
                               loginEntity: LogInEntity(
-                                  password: password.text,
-                                  email: email.text)));
+                                  password: password.text, email: email.text)));
                         },
                         bC: 0xFFFFFFFF,
                         col: 0xFF169C89);

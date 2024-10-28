@@ -61,8 +61,7 @@ class AuthBlocBloc extends Bloc<AuthBlocEvent, AuthBlocState> {
       result.fold((failure) {
         emit(AuthError(message: 'failed in being logged out'));
       }, (data) {
-        emit(
-            AuthRegisterSuccess(successMessage: 'successfully Logged you in!'));
+        emit(LoggedOut());
       });
     });
 

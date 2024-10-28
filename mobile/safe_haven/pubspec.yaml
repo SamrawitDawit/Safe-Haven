@@ -53,6 +53,7 @@ dependencies:
   google_sign_in: ^5.4.1    
   url_launcher: ^6.3.0
   flutter_appauth: ^7.0.0
+  video_player: ^2.4.7 
 
 dev_dependencies:
   flutter_test:

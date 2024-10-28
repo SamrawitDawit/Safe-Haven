@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:safe_haven/features/auth/data/models/authenticated_model.dart';
 import 'package:safe_haven/features/auth/data/models/log_in_model.dart';
+import 'package:safe_haven/features/auth/data/models/user_model.dart';
 import 'package:safe_haven/features/auth/data/repositories/authentication_repo_impl.dart';
 import 'package:safe_haven/features/auth/domain/entities/log_in_entity.dart';
 // import 'package:safe_haven/features/auth/domain/entities/sign_up_entity.dart';
@@ -35,11 +36,13 @@ void main() {
     //     password: 'pass',
     //     phoneNumber: '123');
 
-    final testloginEnity =
-        LogInEntity(password: 'password', phoneNumber: '123',fullName: 'name',email: '123');
+    final testloginEnity = LogInEntity(
+        password: 'password',
+        phoneNumber: '123',
+        fullName: 'name',
+        email: '123');
 
-    final testloginmodel =
-        LogInModel( password: 'password', email: 'wer');
+    final testloginmodel = LogInModel(password: 'password', email: 'wer');
 
     test('should check device online', () async {
       when(mockNetworkInfo.isConnected).thenAnswer((_) async {
@@ -48,9 +51,21 @@ void main() {
       when(mockAuthenticationRemoteDataSource.login(any)).thenAnswer((_) async {
         print('ezi');
         print(testloginmodel);
-        return AuthenticatedModel(token: 'token' , refreshToken: 'refreshToken');
+        return UserModel(
+            id: 'id',
+            fullname: ' fullname',
+            accessToken: 'accessToken',
+            refreshToken: 'refreshToken',
+            resetToken: 'resetToken',
+            category: ' category',
+            language: 'language',
+            resetTokenExpiry: 'resetTokenExpiry',
+            createdAt: 'createdAt',
+            updatedAt: 'updatedAt',
+            resetCode: 'resetCode');
       });
-      when(mockAuthenticationLocalDataSource.cacheTokens('token', 'refreshToken'))
+      when(mockAuthenticationLocalDataSource.cacheTokens(
+              'token', 'refreshToken'))
           .thenAnswer((_) async => unit);
       print('ezietach');
       print(testloginEnity.email);
