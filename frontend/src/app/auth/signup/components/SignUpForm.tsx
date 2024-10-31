@@ -142,7 +142,7 @@ export default function SignUpForm() {
             )}
           />
 
-          <Link href="/signup-with-phone" className="text-slate-500 text-sm">
+          <Link href="signup-with-phone" className="text-slate-500 text-sm">
             Use Phone number instead
           </Link>
 

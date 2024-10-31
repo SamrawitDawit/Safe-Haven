@@ -130,3 +130,30 @@ body {
   box-shadow: 0 -1px 0 rgba(22, 156, 137, 1), 0 2px 4px rgba(22, 156, 137, 1),
     0 0 0 3px #c8dafc;
 }
+.text-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+}
+
+.text-container::before,
+.text-container::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background-color: white;
+}
+
+.text-container::before {
+  margin-right: 10px; /* Adjust the spacing as needed */
+}
+
+.text-container::after {
+  margin-left: 10px; /* Adjust the spacing as needed */
+}
+
+.text-container p {
+  white-space: normal; /* Ensure text wraps */
+}

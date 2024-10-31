@@ -97,7 +97,7 @@ const LoginEmail = () => {
         {/* Sign Up Link */}
         <div className="w-fit h-fit flex gap-3">
           <p className="text-[16px] font-epilogue font-normal leading-[25.6px] text-[#202430] w-[203px] h-[26px] opacity-[0.7]">
-            Don&apos;t have an account?
+            Don't have an account?
           </p>
           <Link
             href="/auth/signup"
