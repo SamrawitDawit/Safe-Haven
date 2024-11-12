@@ -7,7 +7,9 @@ import (
 	"backend/infrastructure"
 	"backend/repositories"
 	"backend/usecases"
+	"backend/websockets"
 	"log"
+	"net/http"
 
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -43,6 +45,7 @@ func main() {
 	caseUsecase := usecases.NewCaseUseCase(caseRepo, &encryptService)
 	authController := controllers.NewAuthController(authUsecase)
 	caseController := controllers.NewCaseController(caseUsecase, &recaptchaService)
+	http.HandleFunc("/ws", websockets.HandleConnections)
 
 	router.NewRouter(
 		&router.RouterControllers{
