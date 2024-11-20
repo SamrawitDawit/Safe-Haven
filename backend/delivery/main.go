@@ -7,7 +7,6 @@ import (
 	"backend/infrastructure"
 	"backend/repositories"
 	"backend/usecases"
-	"backend/websockets"
 	"log"
 	"net/http"
 
@@ -45,7 +44,11 @@ func main() {
 	caseUsecase := usecases.NewCaseUseCase(caseRepo, &encryptService)
 	authController := controllers.NewAuthController(authUsecase)
 	caseController := controllers.NewCaseController(caseUsecase, &recaptchaService)
-	http.HandleFunc("/ws", websockets.HandleConnections)
+	wsController := infrastructure.SetupWebSocketServer()
+	http.HandleFunc("/ws", wsController.ServeWS)
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		log.Fatal(err)
+	}
 
 	router.NewRouter(
 		&router.RouterControllers{
